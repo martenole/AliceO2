@@ -316,10 +316,9 @@ void TrackResiduals::buildLocalResidualTreesFromRun2Data()
       // the x of the track is evaluated not at the pad-row x = r * cs, but at x = r * cs - dy * sn
       float xRow = mArrR[iCl] * cs;
       float dx = mArrDY[iCl] * sn;
-      float xTrk = xRow - dx;
       float yCl = mArrR[iCl] * sn;         // cluster y in sector frame
-      float yTrk = yCl + mArrDY[iCl] * cs; // track Y in sector frame at x = xTrk
-      float zTrk = mArrZTr[iCl];           // track Z at x = xTrk
+      float yTrk = yCl + mArrDY[iCl] * cs; // track Y in sector frame at x = xTrk = xRow - dx
+      float zTrk = mArrZTr[iCl];           // track Z at x = xTrk = xRow - dx
       float zCl = zTrk - mArrDZ[iCl];      // cluster z is zTrk - deltaZ
       // use linear approximation to take the track to the real pad-row x
       float tgSlp = mArrTgSlp[iCl];
@@ -405,7 +404,7 @@ int TrackResiduals::checkResiduals(std::bitset<param::NPadRows>& rejCl, float& r
   std::array<float, param::NPadRows> absDevZ{};
 
   for (int iCl = 0; iCl < mNCl; ++iCl) {
-    if (mArrSecId[iCl] == secStart && iCl < iClLast) {
+    if (iCl < iClLast && mArrSecId[iCl] == secStart) {
       continue;
     }
     // sector changed or last cluster reached
@@ -1803,12 +1802,10 @@ bool TrackResiduals::compareToHelix(std::array<float, param::NPadRows>& residHel
   float csPhi = cos(phiSect);
   sPath[0] = 0.f;
 
-  float cs;
-  float sn;
   for (int iP = 0; iP < mNCl; ++iP) {
     //printf("idx%03i: phi(%.2f), r(%.2f), dy(%.2f), sect0(%02i), z(%.2f)\n", iP, mArrPhi[iP], mArrR[iP], mArrDY[iP], secCurr, mArrZTr[iP]);
-    cs = cos(mArrPhi[iP] - phiSect);
-    sn = sin(mArrPhi[iP] - phiSect);
+    float cs = cos(mArrPhi[iP] - phiSect);
+    float sn = sin(mArrPhi[iP] - phiSect);
     // we are still in the cluster frame - radius and x are the same in this case
     // now we rotate into the frame of the sector with the first cluster of the track
     xLab[iP] = mArrR[iP] * cs - mArrDY[iP] * sn;
@@ -1890,7 +1887,7 @@ bool TrackResiduals::compareToHelix(std::array<float, param::NPadRows>& residHel
       xcSec = xc * csPhi + yc * snPhi; // recalculate circle center in the sector frame
     }
 
-    cs = cos(mArrPhi[iCl] - phiSect);
+    float cs = cos(mArrPhi[iCl] - phiSect);
     float xRow = mArrR[iCl] * cs; // pad row x in sector frame
     float sinPhi = (xRow - xcSec) / r;
     // TODO add track inclination angle at pad-row
