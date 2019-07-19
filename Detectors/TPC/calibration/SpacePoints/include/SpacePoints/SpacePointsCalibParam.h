@@ -81,10 +81,10 @@ static constexpr int NY2XBins = 15; ///< number of bins in y/x
 static constexpr int NZ2XBins = 5;  ///< number of bins in z/x
 
 // define ranges for compression to shorts in TPCClusterResiduals
-static constexpr float sMaxResid = 20.f; ///< max residual in y and z
-static constexpr float sMaxY = 50.f;     ///< max value for y position (sector coordinates)
-static constexpr float sMaxZ = 300.f;    ///< max value for z position
-static constexpr float sMaxAngle = 2.f;  ///< max value for phi and lambda angle
+static constexpr float MaxResid = 20.f; ///< max residual in y and z
+static constexpr float MaxY = 50.f;     ///< max value for y position (sector coordinates)
+static constexpr float MaxZ = 300.f;    ///< max value for z position
+static constexpr float MaxTgSlp = 2.f;  ///< max value for phi and lambda angles
 
 // miscellaneous
 static constexpr float sEps = 1e-6f; ///< small number for float comparisons
@@ -102,7 +102,6 @@ static constexpr float InvalidR = 10.f;                 ///< clusters with a rad
 static constexpr float InvalidRes = -900.f;             ///< clusters with a residual smaller than this are neglected
 static constexpr int MinNCl = 30;                       ///< min number of clusters in a track to be used for calibration
 static constexpr float MaxQ2Pt = 3.f;                   ///< max fitted q/pt for a track to be used for calibration
-static constexpr float MaxTgSlp = 2.f;                  ///< max value for the local slope of a track in azimuthal plane
 static constexpr float Bz = -5.0077936f;                ///< hard-coded B-field for the moment to compare with results from AliRoot
 static constexpr float MaxDevHelixY = .3f;              ///< max deviation in Y for clusters wrt helix fit
 static constexpr float MaxDevHelixZ = .3f;              ///< max deviation in Z for clusters wrt helix fit

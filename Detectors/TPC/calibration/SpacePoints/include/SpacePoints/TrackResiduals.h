@@ -92,8 +92,8 @@ class TrackResiduals
 
   /// Structure for local residuals (y/z position, dip angle, voxel identifier)
   struct LocalResid {
-    short dY;                                 ///< residual in y, ranges from -param::sMaxResid to +param::sMaxResid
-    short dZ;                                 ///< residual in z, ranges from -param::sMaxResid to +param::sMaxResid
+    short dy;                                 ///< residual in y, ranges from -param::sMaxResid to +param::sMaxResid
+    short dz;                                 ///< residual in z, ranges from -param::sMaxResid to +param::sMaxResid
     short tgSlp;                              ///< track dip angle, ranges from -param::sMaxAngle to +param::sMaxAngle
     std::array<unsigned char, VoxDim> bvox{}; ///< voxel identifier: VoxZ, VoxF, VoxX
   };
@@ -113,14 +113,6 @@ class TrackResiduals
     Char_t trdOK{ 0 };             ///< track had matched points in TRD
     Char_t itsOK{ 0 };             ///< track had matched points in ITS
     UShort_t npValid{ 0 };         ///< number of valid TPC clusters
-  };
-
-  // Local residuals structure for comparison with Run2 legacy data (using same compression with Double32_t data type instead of shorts)
-  struct CompactStruct {
-    Double32_t dy;    //[-20.,20.,15]   ///< y-residual
-    Double32_t dz;    //[-20.,20.,15]   ///< z-residual
-    Double32_t tgSlp; //[-2,2,14]       ///< tan(phi angle)
-    UChar_t bvox[3];  ///< voxel bin info (VoxF, VoxX, VoxZ)
   };
 
   // -------------------------------------- initialization --------------------------------------------------
@@ -153,8 +145,17 @@ class TrackResiduals
   /// Build local residual trees from Run 2 legacy data in the same way as in AliRoot
   void buildLocalResidualTreesFromRun2Data();
 
+  /// Fill the tree with local residuals with input from the buffer arrays
+  void fillLocalResidualsTrees();
+
   /// Activate necessary branches from Run 2 delta trees
   void prepareDeltaTreeBranches();
+
+  /// Create output files for each sector with trees for local residuals
+  void prepareLocalResidualTrees();
+
+  /// Write trees with local residuals to file
+  void writeLocalResidualTreesToFile();
 
   /// Loads residual data from track interpolation and fills voxel data structures local residuals
   void convertToLocalResiduals();
@@ -287,12 +288,12 @@ class TrackResiduals
   /// \param ip Bin index in Y/X
   /// \param iz Bin index in Z/X
   /// \return global bin number
-  unsigned short getGlbVoxBin(int ix, int ip, int iz) const;
+  unsigned short getGlbVoxBin(const int ix, const int ip, const int iz) const;
 
   /// Calculates the global bin number
   /// \param bvox Array with the voxels bin indices in X, Y/X and Z/X
   /// \return global bin number
-  unsigned short getGlbVoxBin(std::array<unsigned char, VoxDim> bvox) const;
+  unsigned short getGlbVoxBin(const std::array<unsigned char, VoxDim> bvox) const;
 
   /// Calculates the coordinates of the center for a given voxel.
   /// These are not global TPC coordinates, but the coordinates for the given global binning system.
@@ -304,29 +305,29 @@ class TrackResiduals
   /// \param x Coordinate in X
   /// \param p Coordinate in Y/X
   /// \param z Coordinate in Z
-  void getVoxelCoordinates(int isec, int ix, int ip, int iz, float& x, float& p, float& z) const;
+  void getVoxelCoordinates(const int isec, const int ix, const int ip, const int iz, float& x, float& p, float& z) const;
 
   /// Calculates the x-coordinate for given x bin.
   /// \param i Bin index
   /// \return Coordinate in X
-  float getX(int i) const;
+  float getX(const int i) const;
 
   /// Calculates the y/x-coordinate.
   /// \param ix Bin index in X
   /// \param ip Bin index in Y/X
   /// \return Coordinate in Y/X
-  float getY2X(int ix, int ip) const;
+  float getY2X(const int ix, const int ip) const;
 
   /// Calculates the z-coordinate for given z bin
   /// \param i Bin index
   /// \return Coordinate in Z
-  float getZ(int i) const;
+  float getZ(const int i) const;
 
   /// Tests whether a bin in X is set to be ignored.
   /// \param iSec Sector number
   /// \param bin Bin index in X
   /// \return Ignore flag
-  bool getXBinIgnored(int iSec, int bin) const { return mXBinsIgnore[iSec].test(bin); }
+  bool getXBinIgnored(const int iSec, const int bin) const { return mXBinsIgnore[iSec].test(bin); }
 
   /// Calculates the bin indices of the closest voxel.
   /// \param x Coordinate in X
@@ -335,36 +336,36 @@ class TrackResiduals
   /// \param ix Resulting bin index in X
   /// \param ip Resulting bin index in Y/X
   /// \param iz Resulting bin index in Z/X
-  void findVoxel(float x, float y2x, float z2x, int& ix, int& ip, int& iz) const;
+  void findVoxel(const float x, const float y2x, const float z2x, int& ix, int& ip, int& iz) const;
 
   /// Calculates the bin indices for given x, y, z in sector coordinates
-  bool findVoxelBin(float x, float y, float z, std::array<unsigned char, VoxDim>& bvox) const;
+  bool findVoxelBin(const float x, const float y, const float z, std::array<unsigned char, VoxDim>& bvox) const;
 
   /// Transforms X coordinate to bin index
   /// \param x Coordinate in X
   /// \return Bin index in X
-  int getXBin(float x) const;
+  int getXBin(const float x) const;
 
   /// Transforms Y/X coordinate to bin index at given X
   /// \param y2x Coordinate in Y/X
   /// \param ix Bin index in X
   /// \return Bin index in Y/X
-  int getY2XBin(float y2x, int ix) const;
+  int getY2XBin(const float y2x, const int ix) const;
 
   /// Transforms Z coordinate to bin index
   /// \param z2x Coordinate in Z
   /// \return Bin index in Z/X
-  int getZ2XBin(float z2x) const;
+  int getZ2XBin(const float z2x) const;
 
   /// Returns the inverse of the distance between two bins in X
   /// \param ix Bin index in X
   /// \return Inverse of the distance between bins
-  float getDXI(int ix) const;
+  float getDXI(const int ix) const;
 
   /// Returns the inverse of the distance between two bins in Y/X
   /// \param ix Bin index in X
   /// \return Inverse of the distance between bins
-  float getDY2XI(int ix) const { return mDY2XI[ix]; }
+  float getDY2XI(const int ix) const { return mDY2XI[ix]; }
 
   /// Returns the inverse of the distance between two bins in Z/X
   /// \return Inverse of the distance between bins
@@ -373,9 +374,10 @@ class TrackResiduals
   // -------------------------------------- settings --------------------------------------------------
 
   void setLocalResFileName(std::string fName) { mLocalResFileName = fName; }
+  void setLocalResTreeName(std::string tName) { mLocalResTreeName = tName; }
+  void setLocalResBranchName(std::string bName) { mLocalResBranchName = bName; }
   void setMaxPointsPerSector(int nPoints) { mMaxPointsPerSector = nPoints; }
   void setMinEntriesPerVoxel(int nEntries) { mMinEntriesPerVoxel = nEntries; }
-  void setMaxTgSlp(float maxTgSlp) { mMaxTgSlp = maxTgSlp; }
   void setLTMCut(float ltmCut) { mLTMCut = ltmCut; }
   void setMinFracLTM(float ltmCut) { mMinFracLTM = ltmCut; }
   void setMinValidVoxFracDrift(float frac) { mMinValidVoxFracDrift = frac; }
@@ -390,9 +392,10 @@ class TrackResiduals
   void setMaxGaussStdDev(float sigmas) { mMaxGaussStdDev = sigmas; }
 
   std::string getLocalResFileName() const { return mLocalResFileName; }
+  std::string getLocalResTreeName() const { return mLocalResTreeName; }
+  std::string getLocalResBranchName() const { return mLocalResBranchName; }
   int getMaxPointsPerSector() const { return mMaxPointsPerSector; }
   int getMinEntriesPerVoxel() const { return mMinEntriesPerVoxel; }
-  float getMaxTgSlp() const { return mMaxTgSlp; }
   float getLTMCut() const { return mLTMCut; }
   float getMinFracLTM() const { return mMinFracLTM; }
   float getMinValidVoxFracDrift() const { return mMinValidVoxFracDrift; }
@@ -406,9 +409,9 @@ class TrackResiduals
   float getMaxSigZ() const { return mMaxSigZ; }
   float getMaxGaussStdDev() const { return mMaxGaussStdDev; }
 
-  // -------------------------------------- other functions --------------------------------------------
+  // ------------------------- conversion of delta trees -> compact trees ------------------------------
   /// For use with Run 2 data, outlier filtering
-  bool validateTrack();
+  bool validateTrack(std::array<int, 3>& counterTrkValidation);
 
   /// For use with Run 2 data, outlier filtering
   int checkResiduals(std::bitset<param::NPadRows>& rejCl, float& rmsLong);
@@ -440,7 +443,6 @@ class TrackResiduals
   static constexpr float sFloatEps{ 1.e-7f }; ///< float epsilon for robust linear fitting
   static constexpr float sDeadZone{ 1.5f };   ///< dead zone for TPC in between sectors
   static constexpr float sMaxZ2X{ 1.f };      ///< max value for Z2X
-  static constexpr float sMaxResid{ 20.f };   ///< maximum residual in y and z
   static constexpr int sSmtLinDim{ 4 };       ///< max matrix size for smoothing (pol1)
   static constexpr int sMaxSmtDim{ 7 };       ///< max matrix size for smoothing (pol2)
 
@@ -477,10 +479,11 @@ class TrackResiduals
   LocalResid mLocalResid{};                                              ///< data exchange structure for filling mTmpTree
   LocalResid* mLocalResidPtr{ &mLocalResid };                            ///< pointer to mLocalResid
   // settings
-  std::string mLocalResFileName{ "data/tmpDeltaSect" }; ///< filename for local residuals input
+  std::string mLocalResFileName{ "deltasSect" };        ///< filename for local residuals input
+  std::string mLocalResTreeName{ "treeSec" };           ///< name for tree with local residuals
+  std::string mLocalResBranchName{ "localResid" };      ///< branch with LocalResid objects
   int mMaxPointsPerSector{ 30'000'000 };                ///< maximum number of accepted points per sector
   int mMinEntriesPerVoxel{ 15 };                        ///< minimum number of points in voxel for processing
-  float mMaxTgSlp{ 2.f };                               ///< maximum tan(phi) of tracks to be considered
   float mLTMCut{ .75f };                                ///< fraction op points to keep when trimming input data
   float mMinFracLTM{ .5f };                             ///< minimum fraction of points to keep when trimming data to fit expected sigma
   float mMinValidVoxFracDrift{ .5f };                   ///< if more than this fraction of bins are bad for one pad row the bad row is declared bad
@@ -531,23 +534,22 @@ class TrackResiduals
   float mQpt{ 0.f };
   float mTgl{ 0.f };
   int mNCl{ 0 };
-  std::array<int, 3> mCounterTrkValidation{};
 };
 
 //_____________________________________________________
-inline unsigned short TrackResiduals::getGlbVoxBin(std::array<unsigned char, VoxDim> bvox) const
+inline unsigned short TrackResiduals::getGlbVoxBin(const std::array<unsigned char, VoxDim> bvox) const
 {
   return bvox[VoxX] + (bvox[VoxF] + bvox[VoxZ] * mNY2XBins) * mNXBins;
 }
 
 //_____________________________________________________
-inline unsigned short TrackResiduals::getGlbVoxBin(int ix, int ip, int iz) const
+inline unsigned short TrackResiduals::getGlbVoxBin(const int ix, const int ip, const int iz) const
 {
   return ix + (ip + iz * mNY2XBins) * mNXBins;
 }
 
 //_____________________________________________________
-inline void TrackResiduals::getVoxelCoordinates(int isec, int ix, int ip, int iz, float& x, float& p, float& z) const
+inline void TrackResiduals::getVoxelCoordinates(const int isec, const int ix, const int ip, const int iz, float& x, float& p, float& z) const
 {
   x = getX(ix);
   p = getY2X(ix, ip);
@@ -558,7 +560,7 @@ inline void TrackResiduals::getVoxelCoordinates(int isec, int ix, int ip, int iz
 }
 
 //_____________________________________________________
-inline float TrackResiduals::getDXI(int ix) const
+inline float TrackResiduals::getDXI(const int ix) const
 {
   if (mUniformBins[VoxX]) {
     return mDXI;
@@ -588,26 +590,26 @@ inline float TrackResiduals::getDXI(int ix) const
 }
 
 //_____________________________________________________
-inline float TrackResiduals::getX(int i) const
+inline float TrackResiduals::getX(const int i) const
 {
   return mUniformBins[VoxX] ? param::MinX[0] + (i + 0.5) * mDX : param::RowX[i];
 }
 
 //_____________________________________________________
-inline float TrackResiduals::getY2X(int ix, int ip) const
+inline float TrackResiduals::getY2X(const int ix, const int ip) const
 {
   return (0.5f + ip) * mDY2X[ix] - mMaxY2X[ix];
 }
 
 //_____________________________________________________
-inline float TrackResiduals::getZ(int i) const
+inline float TrackResiduals::getZ(const int i) const
 {
   // always positive
   return (0.5f + i) * mDZ;
 }
 
 //_____________________________________________________
-inline void TrackResiduals::findVoxel(float x, float y2x, float z2x, int& ix, int& ip, int& iz) const
+inline void TrackResiduals::findVoxel(const float x, const float y2x, const float z2x, int& ix, int& ip, int& iz) const
 {
   ix = getXBin(x);
   ip = getY2XBin(y2x, ix);
@@ -615,7 +617,7 @@ inline void TrackResiduals::findVoxel(float x, float y2x, float z2x, int& ix, in
 }
 
 //_____________________________________________________
-inline int TrackResiduals::getY2XBin(float y2x, int ix) const
+inline int TrackResiduals::getY2XBin(const float y2x, const int ix) const
 {
   int bp = (y2x + mMaxY2X[ix]) * mDY2XI[ix];
   if (bp < 0) {
@@ -625,7 +627,7 @@ inline int TrackResiduals::getY2XBin(float y2x, int ix) const
 }
 
 //_____________________________________________________
-inline int TrackResiduals::getZ2XBin(float z2x) const
+inline int TrackResiduals::getZ2XBin(const float z2x) const
 {
   int bz = z2x * mDZI;
   if (bz < 0) {

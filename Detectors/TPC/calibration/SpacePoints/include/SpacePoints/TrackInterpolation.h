@@ -52,8 +52,8 @@ struct CacheMeanPosInTPC {
 
 /// Structure used to store the TPC cluster residuals
 struct TPCClusterResiduals {
-  short dY{};           ///< residual in Y
-  short dZ{};           ///< residual in Z
+  short dy{};           ///< residual in Y
+  short dz{};           ///< residual in Z
   short y{};            ///< Y position of track
   short z{};            ///< Z position of track
   short phi{};          ///< phi angle of track
@@ -61,12 +61,12 @@ struct TPCClusterResiduals {
   unsigned char sec{};  ///< sector number 0..17
   unsigned char dRow{}; ///< distance to previous row in units of pad rows
   short row{};          ///< TPC pad row (absolute units)
-  void setDY(float val) { dY = fabs(val) < param::sMaxResid ? static_cast<short>(val * 0x7fff / param::sMaxResid) : static_cast<short>(std::copysign(1., val) * 0x7fff); }
-  void setDZ(float val) { dZ = fabs(val) < param::sMaxResid ? static_cast<short>(val * 0x7fff / param::sMaxResid) : static_cast<short>(std::copysign(1., val) * 0x7fff); }
-  void setY(float val) { y = fabs(val) < param::sMaxY ? static_cast<short>(val * 0x7fff / param::sMaxY) : static_cast<short>(std::copysign(1., val) * 0x7fff); }
-  void setZ(float val) { z = fabs(val) < param::sMaxZ ? static_cast<short>(val * 0x7fff / param::sMaxZ) : static_cast<short>(std::copysign(1., val) * 0x7fff); }
-  void setPhi(float val) { phi = fabs(val) < param::sMaxAngle ? static_cast<short>(val * 0x7fff / param::sMaxAngle) : static_cast<short>(std::copysign(1., val) * 0x7fff); }
-  void setTgl(float val) { tgl = fabs(val) < param::sMaxAngle ? static_cast<short>(val * 0x7fff / param::sMaxAngle) : static_cast<short>(std::copysign(1., val) * 0x7fff); }
+  void setDY(float val) { dy = fabs(val) < param::MaxResid ? static_cast<short>(val * 0x7fff / param::MaxResid) : static_cast<short>(std::copysign(1., val) * 0x7fff); }
+  void setDZ(float val) { dz = fabs(val) < param::MaxResid ? static_cast<short>(val * 0x7fff / param::MaxResid) : static_cast<short>(std::copysign(1., val) * 0x7fff); }
+  void setY(float val) { y = fabs(val) < param::MaxY ? static_cast<short>(val * 0x7fff / param::MaxY) : static_cast<short>(std::copysign(1., val) * 0x7fff); }
+  void setZ(float val) { z = fabs(val) < param::MaxZ ? static_cast<short>(val * 0x7fff / param::MaxZ) : static_cast<short>(std::copysign(1., val) * 0x7fff); }
+  void setPhi(float val) { phi = fabs(val) < param::MaxTgSlp ? static_cast<short>(val * 0x7fff / param::MaxTgSlp) : static_cast<short>(std::copysign(1., val) * 0x7fff); }
+  void setTgl(float val) { tgl = fabs(val) < param::MaxTgSlp ? static_cast<short>(val * 0x7fff / param::MaxTgSlp) : static_cast<short>(std::copysign(1., val) * 0x7fff); }
 };
 
 /// Structure filled for each track with track quality information and a vector with TPCClusterResiduals
