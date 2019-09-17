@@ -251,7 +251,9 @@ void GPUTRDTracker::DoTracking()
   }
 
   auto duration = std::chrono::high_resolution_clock::now() - timeStart;
-  // std::cout << "--->  -----> -------> ---------> Time for event " << mNEvents << ": " << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << " ms" << std::endl;
+  std::cout << "--->  -----> -------> ---------> ";
+  std::cout << "Time for event " << mNEvents << ": " << std::chrono::duration_cast<std::chrono::microseconds>(duration).count() << " us ";
+  std::cout << "nTracks: " << mNTracks << std::endl;
 
   // DumpTracks();
   mNEvents++;
