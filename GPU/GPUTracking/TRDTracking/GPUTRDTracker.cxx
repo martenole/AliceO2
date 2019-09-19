@@ -496,20 +496,6 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
   //    or track does not fullfill threshold conditions
   //--------------------------------------------------------------------
 
-  if (!t->CheckNumericalQuality()) {
-    return false;
-  }
-
-  // only propagate tracks within TRD acceptance
-  if (CAMath::Abs(t->getEta()) > mMaxEta) {
-    return false;
-  }
-
-  // introduce momentum cut on tracks
-  if (t->getPt() < mMinPt) {
-    return false;
-  }
-
   mDebug->Reset();
   int iTrack = t->GetTPCtrackId();
   t->SetChi2(0.f);

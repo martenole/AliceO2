@@ -116,6 +116,15 @@ class GPUTRDTracker : public GPUProcessor
 #endif
       return (1);
     }
+    if (!trk.CheckNumericalQuality()) {
+      return (0);
+    }
+    if (CAMath::Abs(trk.getEta()) > mMaxEta) {
+      return (0);
+    }
+    if (trk.getPt() < mMinPt) {
+      return (0);
+    }
 #ifdef GPUCA_ALIROOT_LIB
     new (&mTracks[mNTracks++]) GPUTRDTrack(trk); // We need placement new, since the class is virtual
 #else
