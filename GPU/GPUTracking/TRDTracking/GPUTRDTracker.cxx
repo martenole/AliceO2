@@ -629,12 +629,14 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
         // first propagate track to x of tracklet
         for (int iTrklt = 0; iTrklt < mNTrackletsInChamber[currDet]; ++iTrklt) {
           int trkltIdx = mTrackletIndexArray[currDet] + iTrklt;
+          /*
           if (!prop->PropagateToX(mSpacePoints[trkltIdx].mR, .8f, 2.f)) {
             if (ENABLE_WARNING) {
               Warning("FollowProlongation", "Track parameter for track %i, x=%f at tracklet %i x=%f in layer %i cannot be retrieved", iTrack, trkWork->getX(), iTrklt, mSpacePoints[trkltIdx].mR, iLayer);
             }
             continue;
           }
+          */
           // correction for tilted pads (only applied if deltaZ < l_pad && track z err << l_pad)
           float tiltCorr = tilt * (mSpacePoints[trkltIdx].mX[1] - trkWork->getZ());
           float l_pad = pad->GetRowSize(mTracklets[trkltIdx].GetZbin());
