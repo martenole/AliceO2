@@ -144,6 +144,7 @@ class GPUTRDTracker : public GPUProcessor
   GPUd() void DoTrackingThread(int iTrk, int threadId = 0);
   GPUd() bool CalculateSpacePoints();
   GPUd() bool FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrack* t, int threadId);
+  GPUd() float GetPredictedChi2(const float* pTRD, const float* covTRD, const float* pTrk, const float* covTrk) const;
   GPUd() int GetDetectorNumber(const float zPos, const float alpha, const int layer) const;
   GPUd() bool AdjustSector(GPUTRDPropagator* prop, GPUTRDTrack* t, const int layer) const;
   GPUd() int GetSector(float alpha) const;

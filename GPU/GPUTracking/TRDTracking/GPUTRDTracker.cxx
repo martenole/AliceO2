@@ -915,6 +915,38 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
   return true;
 }
 
+
+GPUd() float GPUTRDTracker::GetPredictedChi2(const float* pTRD, const float* covTRD, const float* pTrk, const float* covTrk) const
+{
+  // predict chi2 for update of track with pTrk and covTrd with TRD space point with pTRD and covTRD
+  // taking into account y, z and angle of the track and tracklet
+  float deltaY = pTrk[0] - pTRD[0];
+  float deltaZ = pTrk[1] - pTRD[1];
+  float deltaS = pTrk[2] - pTRD[2];
+
+  // add errors for track and space point, assume no correlation in y-sin(phi) and z-sin(phi) for space point
+  float sigmaZ2 = (covTrk[2] + covTRD[2]) * (covTrk[2] + covTRD[2]);
+  float sigmaS2 = (covTrk[5] + covTRD[3]) * (covTrk[5] + covTRD[3]);
+  float sigmaY2 = (covTrk[0] + covTRD[0]) * (covTrk[0] + covTRD[0]);
+  float sigmaZS = covTrk[4];
+  float sigmaYS = covTrk[3];
+  float sigmaYZ = covTrk[1] + covTRD[1];
+  // inverse of the covariance matrix
+  float c11 = sigmaZ2 * sigmaS2 - sigmaZS * sigmaZS;
+  float c21 = sigmaZS * sigmaYS - sigmaYZ * sigmaS2;
+  float c22 = sigmaY2 * sigmaS2 - sigmaYS * sigmaYS;
+  float c31 = sigmaYZ * sigmaZS - sigmaZ2 * sigmaYS;
+  float c32 = sigmaYZ * sigmaYS - sigmaY2 * sigmaZS;
+  float c33 = sigmaY2 * sigmaZ2 - sigmaYZ * sigmaYZ;
+  // determinant
+  float det = sigmaY2 * sigmaZ2 * sigmaS2 + 2 * sigmaYZ * sigmaZS * sigmaYS - sigmaYS * sigmaYS * sigmaZ2 - sigmaZS * sigmaZS * sigmaY2 - sigmaS2 * sigmaYZ * sigmaYZ;
+  if (CAMath::Abs(det) < 1.e-10f) {
+    det = 1.e-10f;
+  }
+  det = 1.f / det;
+  return (c11 * deltaY * deltaY + 2.f * c21 * deltaY * deltaZ + 2.f * c31 * deltaY * deltaS + c22 * deltaZ * deltaZ + 2.f * c32 * deltaZ * deltaS + c33 * deltaS * deltaS) * det;
+}
+
 GPUd() void GPUTRDTracker::InsertHypothesis(Hypothesis hypo, int& nCurrHypothesis, int idxOffset)
 {
   // Insert hypothesis into the array. If the array is full and the reduced chi2 is worse
