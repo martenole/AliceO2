@@ -674,7 +674,7 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
     if (matchAvailableAll[iLayer].size() > 0 && mDebugOutput) {
       mDebug->SetNmatchAvail(matchAvailableAll[iLayer].size(), iLayer);
       int realTrkltId = matchAvailableAll[iLayer].at(0);
-      int realTrkltDet = (mSpacePoints[realTrkltId].mVolumeId & 0x7ff) * kNLayers + (mSpacePoints[realTrkltId].mVolumeId >> 11) - 9 // 9 is the first TRD layer from a.k.a. AliGeomManager::kTRD1
+      int realTrkltDet = mTracklets[realTrkltId].GetDetector();
       bool flag = prop->PropagateToX(mSpacePoints[realTrkltId].mR, .8f, 2.f);
       if (flag) {
         flag = AdjustSector(prop, trkWork, iLayer);
@@ -914,7 +914,6 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
 
   return true;
 }
-
 
 GPUd() float GPUTRDTracker::GetPredictedChi2(const float* pTRD, const float* covTRD, const float* pTrk, const float* covTrk) const
 {
