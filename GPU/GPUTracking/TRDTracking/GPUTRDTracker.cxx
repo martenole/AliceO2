@@ -426,6 +426,7 @@ GPUd() void GPUTRDTracker::DoTrackingThread(int iTrk, int threadId)
   GPUTRDPropagator prop(&Param().polynomialField);
   GPUTRDTrack trkCopy = mTracks[iTrk];
   prop.setTrack(&trkCopy);
+  prop.setFitInProjections(true);
   FollowProlongation(&prop, &trkCopy, threadId);
 }
 
@@ -589,8 +590,8 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
       }
 
       // define search window
-      roadY = 7.f * sqrt(trkWork->getSigmaY2() + 0.1f * 0.1f) + 2.f; // add constant to the road for better efficiency
-      // roadZ = 7.f * sqrt(trkWork->getSigmaZ2() + 9.f * 9.f / 12.f); // take longest pad length
+      roadY = 7.f * CAMath::Sqrt(trkWork->getSigmaY2() + 0.1f * 0.1f) + 2.f; // add constant to the road for better efficiency
+      // roadZ = 7.f * CAMath::Sqrt(trkWork->getSigmaZ2() + 9.f * 9.f / 12.f); // take longest pad length
       roadZ = 18.f; // simply twice the longest pad length -> efficiency 99.996%
       //
       if (CAMath::Abs(trkWork->getZ()) - roadZ >= zMaxTRD) {
@@ -1085,7 +1086,7 @@ GPUd() float GPUTRDTracker::GetAngularPull(float dYtracklet, float snp) const
   if (dYresolution < 1e-6f) {
     return 999.f;
   }
-  return (dYtracklet - dYtrack) / sqrt(dYresolution);
+  return (dYtracklet - dYtrack) / CAMath::Sqrt(dYresolution);
 }
 
 GPUd() void GPUTRDTracker::FindChambersInRoad(const GPUTRDTrack* t, const float roadY, const float roadZ, const int iLayer, int* det, const float zMax, const float alpha) const

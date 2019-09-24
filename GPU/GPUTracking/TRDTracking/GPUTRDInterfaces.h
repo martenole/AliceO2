@@ -103,6 +103,7 @@ class propagatorInterface<AliTrackerBase> : public AliTrackerBase
   bool PropagateToX(float x, float maxSnp, float maxStep) { return PropagateTrackToBxByBz(mParam, x, 0.13957, maxStep, false, maxSnp); }
 
   void setTrack(trackInterface<AliExternalTrackParam>* trk) { mParam = trk; }
+  void setFitInProjections(bool flag) {}
 
   float getAlpha() { return (mParam) ? mParam->GetAlpha() : 99999.f; }
   bool update(const My_Float p[2], const My_Float cov[3]) { return (mParam) ? mParam->update(p, cov) : false; }
@@ -246,6 +247,7 @@ class propagatorInterface<GPUTPCGMPropagator> : public GPUTPCGMPropagator
     ok = mTrack->CheckNumericalQuality();
     return ok;
   }
+  GPUd() void setFitInProjections(bool flag) { SetFitInProjections(flag); }
   GPUd() bool rotate(float alpha)
   {
     if (RotateToAlpha(alpha) == 0) {
