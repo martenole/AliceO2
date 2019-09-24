@@ -42,6 +42,8 @@ TFile* fOut = 0x0; // output file with results
 
 static const Float_t xDrift = 3.f; // drift length in TRD
 
+Float_t mRadiusTRD[6] = {299.9399, 312.6280, 325.1296, 350.4096, 362.9868}; // values obtained from TRD geometry with misalignment (sector 0, stack 2)
+
 // branches
 Int_t event = 0x0;
 Int_t nTPCtracks = 0x0;
@@ -309,6 +311,14 @@ Double_t GetDeltaAngle(Int_t layer)
   return (trackletDyLayer - trackletDyF);
 }
 
+Double_t GetDeltaR(Int_t layer)
+{
+  if (layer < 0 || layer > 5 || (*trackletXreal)[layer] < 10) {
+    return -999;
+  }
+  return (*trackletXreal)[layer] - mRadiusTRD[layer];
+}
+
 // tracklet residual in rphi, either based on interpolated tracklet position from the surrounding layers
 // or only on the tracklet position in given layer
 Double_t GetDeltaRPhi(Int_t layer, Bool_t interpolation = kFALSE, Bool_t rawTrkltPosition = kFALSE)
@@ -397,6 +407,16 @@ void FitRPhiVsChamber(Bool_t rawTrkltPosition = kTRUE)
     ((TH2*)tree->GetHistogram())->FitSlicesY();
     ((TH1*)gROOT->FindObject("hisRPhiDet_1"))->Draw();
   }
+}
+
+void FitRadialSpreadTrklts()
+{
+  if (!tree) {
+    return;
+  }
+  tree->Draw("GetDeltaR(layer):trackletDetReal.fElements>>hisRDet(540, -0.5, 539.5, 50, -5, 5)", "LoadBranches(Entry$)", "colz");
+  ((TH2*)tree->GetHistogram())->FitSlicesY();
+  ((TH1*)gROOT->FindObject("hisRDet_2"))->Draw();
 }
 
 void PrintEfficiency(Float_t ptCut = 1.5)
