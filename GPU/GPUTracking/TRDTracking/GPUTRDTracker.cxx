@@ -424,8 +424,9 @@ GPUd() void GPUTRDTracker::DoTrackingThread(int iTrk, int threadId)
   // perform the tracking for one track (must be threadsafe)
   //--------------------------------------------------------------------
   GPUTRDPropagator prop(&Param().polynomialField);
-  prop.setTrack(&(mTracks[iTrk]));
-  FollowProlongation(&prop, &(mTracks[iTrk]), threadId);
+  GPUTRDTrack trkCopy = mTracks[iTrk];
+  prop.setTrack(&trkCopy);
+  FollowProlongation(&prop, &trkCopy, threadId);
 }
 
 GPUd() bool GPUTRDTracker::CalculateSpacePoints()
