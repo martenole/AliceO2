@@ -20,6 +20,7 @@
 
 #include "TVectorF.h"
 #include "TTreeStream.h"
+#include "GPULogging.h"
 #include "GPUTRDTrack.h"
 
 namespace GPUCA_NAMESPACE

@@ -100,7 +100,8 @@ class propagatorInterface<AliTrackerBase> : public AliTrackerBase
   propagatorInterface<AliTrackerBase>(const propagatorInterface<AliTrackerBase>&) CON_DELETE;
   propagatorInterface<AliTrackerBase>& operator=(const propagatorInterface<AliTrackerBase>&) CON_DELETE;
 
-  bool PropagateToX(float x, float maxSnp, float maxStep) { return PropagateTrackToBxByBz(mParam, x, 0.13957, maxStep, false, maxSnp); }
+  bool propagateToX(float x, float maxSnp, float maxStep) { return PropagateTrackToBxByBz(mParam, x, 0.13957, maxStep, false, maxSnp); }
+  int getPropagatedYZ(My_Float x, My_Float& projY, My_Float& projZ) { Double_t yz[2] = { 0. }; mParam->GetYZAt(x, GetBz(), yz); projY = yz[0]; projZ = yz[1]; return 0; }
 
   void setTrack(trackInterface<AliExternalTrackParam>* trk) { mParam = trk; }
   void setFitInProjections(bool flag) {}
@@ -241,12 +242,13 @@ class propagatorInterface<GPUTPCGMPropagator> : public GPUTPCGMPropagator
     SetTrack(trk, trk->getAlpha());
     mTrack = trk;
   }
-  GPUd() bool PropagateToX(float x, float maxSnp, float maxStep)
+  GPUd() bool propagateToX(float x, float maxSnp, float maxStep)
   {
     bool ok = PropagateToXAlpha(x, GetAlpha(), true) == 0 ? true : false;
     ok = mTrack->CheckNumericalQuality();
     return ok;
   }
+  GPUd() int getPropagatedYZ(float x, float& projY, float& projZ) { return GetPropagatedYZ(x, projY, projZ); }
   GPUd() void setFitInProjections(bool flag) { SetFitInProjections(flag); }
   GPUd() bool rotate(float alpha)
   {

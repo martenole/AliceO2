@@ -189,7 +189,7 @@ class GPUTRDTracker : public GPUProcessor
   GPUd() void DumpTracks();
 
  protected:
-  float* mR;                               // rough radial position of each TRD layer
+  float* mR;                               // radial position of each TRD chamber, alignment taken into account, radial spread within chambers < 7mm
   bool mIsInitialized;                     // flag is set upon initialization
   short mMemoryPermanent;                  // size of permanent memory for the tracker
   short mMemoryTracklets;                  // size of memory for TRD tracklets

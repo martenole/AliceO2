@@ -80,7 +80,7 @@ void* GPUTRDTracker::SetPointersBase(void* base)
   // Allocate memory for fixed size objects (needs to be done only once)
   //--------------------------------------------------------------------
   mMaxThreads = mRec->GetMaxThreads();
-  computePointerWithAlignment(base, mR, kNLayers);
+  computePointerWithAlignment(base, mR, kNChambers);
   computePointerWithAlignment(base, mNTrackletsInChamber, kNChambers);
   computePointerWithAlignment(base, mTrackletIndexArray, kNChambers);
   computePointerWithAlignment(base, mHypothesis, mNCandidates * mMaxThreads);
@@ -150,25 +150,18 @@ bool GPUTRDTracker::Init(TRD_GEOMETRY_CONST GPUTRDGeometry* geo)
 
   // obtain average radius of TRD layers (use default value w/o misalignment if no transformation matrix can be obtained)
   float x0[kNLayers] = {300.2f, 312.8f, 325.4f, 338.0f, 350.6f, 363.2f};
-  for (int iLy = 0; iLy < kNLayers; iLy++) {
-    mR[iLy] = x0[iLy];
-  }
+
   auto* matrix = mGeo->GetClusterMatrix(0);
   My_Float loc[3] = {mGeo->AnodePos(), 0.f, 0.f};
   My_Float glb[3] = {0.f, 0.f, 0.f};
-  for (int iLy = 0; iLy < kNLayers; iLy++) {
-    for (int iSec = 0; iSec < kNSectors; iSec++) {
-      matrix = mGeo->GetClusterMatrix(mGeo->GetDetector(iLy, 2, iSec));
-      if (matrix) {
-        break;
-      }
-    }
+  for (int iDet = 0; iDet < kNChambers; ++iDet) {
+    matrix = mGeo->GetClusterMatrix(iDet);
     if (!matrix) {
-      Error("Init", "Could not get transformation matrix for layer %i. Using default x pos instead", iLy);
+      mR[iDet] = x0[mGeo->GetLayer(iDet)];
       continue;
     }
     matrix->LocalToMaster(loc, glb);
-    mR[iLy] = glb[0];
+    mR[iDet] = glb[0];
   }
 
   mDebug->ExpandVectors();
@@ -568,10 +561,10 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
         continue;
       }
 
-      // propagate track to average radius of TRD layer iLayer
-      if (!prop->PropagateToX(mR[iLayer], .8f, 2.f)) {
+      // propagate track to average radius of TRD layer iLayer (sector 0, stack 2 is chosen as a reference)
+      if (!prop->propagateToX(mR[2*kNLayers+iLayer], .8f, 2.f)) {
         if (ENABLE_INFO) {
-          Info("FollowProlongation", "Track propagation failed for track %i candidate %i in layer %i (pt=%f, x=%f, mR[layer]=%f)", iTrack, iCandidate, iLayer, trkWork->getPt(), trkWork->getX(), mR[iLayer]);
+          Info("FollowProlongation", "Track propagation failed for track %i candidate %i in layer %i (pt=%f, x=%f, mR[layer]=%f)", iTrack, iCandidate, iLayer, trkWork->getPt(), trkWork->getX(), mR[2*kNLayers+iLayer]);
         }
         continue;
       }
@@ -627,11 +620,20 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
           Error("FollowProlongation", "Track is in sector %i and sector %i is searched for tracklets", GetSector(prop->getAlpha()), currSec);
           continue;
         }
+        // propagate track to radius of chamber
+        if (!prop->propagateToX(mR[currDet], .8f, .2f)) {
+          if (ENABLE_WARNING) {
+            Warning("FollowProlongation", "Track parameter for track %i, x=%f at chamber %i x=%f in layer %i cannot be retrieved", iTrack, trkWork->getX(), currDet, mR[currDet], iLayer);
+          }
+        }
         // first propagate track to x of tracklet
         for (int iTrklt = 0; iTrklt < mNTrackletsInChamber[currDet]; ++iTrklt) {
           int trkltIdx = mTrackletIndexArray[currDet] + iTrklt;
+          //My_Float projY = trkWork->getY(), projZ = trkWork->getZ();
+          My_Float projY, projZ;
+          prop->GetPropagatedYZ(mSpacePoints[trkltIdx].mR, projY, projZ);
           /*
-          if (!prop->PropagateToX(mSpacePoints[trkltIdx].mR, .8f, 2.f)) {
+          if (!prop->propagateToX(mSpacePoints[trkltIdx].mR, .8f, 2.f)) {
             if (ENABLE_WARNING) {
               Warning("FollowProlongation", "Track parameter for track %i, x=%f at tracklet %i x=%f in layer %i cannot be retrieved", iTrack, trkWork->getX(), iTrklt, mSpacePoints[trkltIdx].mR, iLayer);
             }
@@ -639,16 +641,16 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
           }
           */
           // correction for tilted pads (only applied if deltaZ < l_pad && track z err << l_pad)
-          float tiltCorr = tilt * (mSpacePoints[trkltIdx].mX[1] - trkWork->getZ());
+          float tiltCorr = tilt * (mSpacePoints[trkltIdx].mX[1] - projZ);
           float l_pad = pad->GetRowSize(mTracklets[trkltIdx].GetZbin());
-          if (!((CAMath::Abs(mSpacePoints[trkltIdx].mX[1] - trkWork->getZ()) < l_pad) && (trkWork->getSigmaZ2() < (l_pad * l_pad / 12.f)))) {
+          if (!((CAMath::Abs(mSpacePoints[trkltIdx].mX[1] - projZ) < l_pad) && (trkWork->getSigmaZ2() < (l_pad * l_pad / 12.f)))) {
             tiltCorr = 0.f;
           }
           // correction for mean z position of tracklet (is not the center of the pad if track eta != 0)
           float zPosCorr = mSpacePoints[trkltIdx].mX[1] + mZCorrCoefNRC * trkWork->getTgl();
           float yPosCorr = mSpacePoints[trkltIdx].mX[0] - tiltCorr;
-          float deltaY = yPosCorr - trkWork->getY();
-          float deltaZ = zPosCorr - trkWork->getZ();
+          float deltaY = yPosCorr - projY;
+          float deltaZ = zPosCorr - projZ;
           My_Float trkltPosTmpYZ[2] = {yPosCorr, zPosCorr};
           My_Float trkltCovTmp[3] = {0.f};
           if ((CAMath::Abs(deltaY) < roadY) && (CAMath::Abs(deltaZ) < roadZ)) {
@@ -676,7 +678,7 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
       mDebug->SetNmatchAvail(matchAvailableAll[iLayer].size(), iLayer);
       int realTrkltId = matchAvailableAll[iLayer].at(0);
       int realTrkltDet = mTracklets[realTrkltId].GetDetector();
-      bool flag = prop->PropagateToX(mSpacePoints[realTrkltId].mR, .8f, 2.f);
+      bool flag = prop->propagateToX(mSpacePoints[realTrkltId].mR, .8f, 2.f);
       if (flag) {
         flag = AdjustSector(prop, trkWork, iLayer);
       }
@@ -753,7 +755,7 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
         // if after a matching tracklet was found another sector was searched for tracklets the track needs to be rotated back
         prop->rotate(GetAlphaOfSector(trkltSec));
       }
-      if (!prop->PropagateToX(mSpacePoints[mHypothesis[iUpdate + hypothesisIdxOffset].mTrackletId].mR, .8f, 2.f)) {
+      if (!prop->propagateToX(mSpacePoints[mHypothesis[iUpdate + hypothesisIdxOffset].mTrackletId].mR, .8f, 2.f)) {
         if (ENABLE_WARNING) {
           Warning("FollowProlongation", "Final track propagation for track %i update %i in layer %i failed", iTrack, iUpdate, iLayer);
         }
@@ -782,8 +784,8 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
 #ifdef ENABLE_GPUTRDDEBUG
       prop->setTrack(&trackNoUp);
       prop->rotate(GetAlphaOfSector(trkltSec));
-      prop->PropagateToX(mSpacePoints[mHypothesis[iUpdate + hypothesisIdxOffset].mTrackletId].mR, .8f, 2.f);
-      prop->PropagateToX(mR[iLayer], .8f, 2.f);
+      //prop->propagateToX(mSpacePoints[mHypothesis[iUpdate + hypothesisIdxOffset].mTrackletId].mR, .8f, 2.f);
+      prop->propagateToX(mR[mTracklets[mHypothesis[iUpdate + hypothesisIdxOffset]].GetDetector()], .8f, 2.f);
       prop->setTrack(trkWork);
 #endif
 
@@ -796,7 +798,6 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
         mDebug->SetCorrectedTrackletPosition(trkltPosUp, iLayer);
         mDebug->SetTrackletCovariance(mSpacePoints[mHypothesis[iUpdate + hypothesisIdxOffset].mTrackletId].mCov, iLayer);
         mDebug->SetTrackletProperties(mSpacePoints[mHypothesis[iUpdate + hypothesisIdxOffset].mTrackletId].mDy, mTracklets[mHypothesis[iUpdate + hypothesisIdxOffset].mTrackletId].GetDetector(), iLayer);
-        mDebug->SetRoad(roadY, roadZ, iLayer);
         wasTrackStored = true;
       }
 
@@ -1034,7 +1035,7 @@ GPUd() bool GPUTRDTracker::AdjustSector(GPUTRDPropagator* prop, GPUTRDTrack* t, 
     if (!prop->rotate(alphaCurr + alpha * sign)) {
       return false;
     }
-    if (!prop->PropagateToX(xTmp, .8f, 2.f)) {
+    if (!prop->propagateToX(xTmp, .8f, 2.f)) {
       return false;
     }
     y = t->getY();
