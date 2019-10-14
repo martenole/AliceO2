@@ -42,7 +42,6 @@ TFile* fOut = 0x0; // output file with results
 
 static const Float_t xDrift = 3.f; // drift length in TRD
 
-
 Float_t mRadiusTRD[540] = {
   // values obtained from TRD geometry with misalignment
   301.1638, 313.6753, 326.2809, 338.9940, 351.6026, 364.0537, 300.1665, 312.7854, 325.2572, 338.0002,
@@ -98,8 +97,7 @@ Float_t mRadiusTRD[540] = {
   325.4392, 338.0548, 350.6596, 363.2844, 300.7667, 313.3035, 325.9411, 338.6026, 351.2442, 363.8458,
   301.1233, 313.6592, 326.2866, 338.9925, 351.5959, 364.2216, 300.4396, 313.0188, 325.6150, 338.2195,
   350.8347, 363.4567, 300.2179, 312.8220, 325.4206, 337.9880, 350.5974, 363.2124, 300.2803, 312.8911,
-  325.4789, 338.1055, 350.7065, 363.3173, 300.9001, 313.4750, 326.0733, 338.7448, 0.0000, 363.9888
-};
+  325.4789, 338.1055, 350.7065, 363.3173, 300.9001, 313.4750, 326.0733, 338.7448, 0.0000, 363.9888};
 
 // branches
 Int_t event = 0x0;
@@ -377,7 +375,7 @@ Double_t GetDeltaAngle(Int_t layer)
 Double_t GetEta(Float_t tgl)
 {
   Double_t theta = TMath::Pi() / 2. - TMath::ATan(tgl);
-  return - TMath::Log(TMath::Tan(theta * .5));
+  return -TMath::Log(TMath::Tan(theta * .5));
 }
 
 Double_t GetDeltaR(Int_t layer)

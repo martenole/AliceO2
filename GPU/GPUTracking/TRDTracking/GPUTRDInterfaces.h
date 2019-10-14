@@ -101,7 +101,14 @@ class propagatorInterface<AliTrackerBase> : public AliTrackerBase
   propagatorInterface<AliTrackerBase>& operator=(const propagatorInterface<AliTrackerBase>&) CON_DELETE;
 
   bool propagateToX(float x, float maxSnp, float maxStep) { return PropagateTrackToBxByBz(mParam, x, 0.13957, maxStep, false, maxSnp); }
-  int getPropagatedYZ(My_Float x, My_Float& projY, My_Float& projZ) { Double_t yz[2] = { 0. }; mParam->GetYZAt(x, GetBz(), yz); projY = yz[0]; projZ = yz[1]; return 0; }
+  int getPropagatedYZ(My_Float x, My_Float& projY, My_Float& projZ)
+  {
+    Double_t yz[2] = {0.};
+    mParam->GetYZAt(x, GetBz(), yz);
+    projY = yz[0];
+    projZ = yz[1];
+    return 0;
+  }
 
   void setTrack(trackInterface<AliExternalTrackParam>* trk) { mParam = trk; }
   void setFitInProjections(bool flag) {}

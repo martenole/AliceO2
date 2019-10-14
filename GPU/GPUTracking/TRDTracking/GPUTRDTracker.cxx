@@ -562,9 +562,9 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
       }
 
       // propagate track to average radius of TRD layer iLayer (sector 0, stack 2 is chosen as a reference)
-      if (!prop->propagateToX(mR[2*kNLayers+iLayer], .8f, 2.f)) {
+      if (!prop->propagateToX(mR[2 * kNLayers + iLayer], .8f, 2.f)) {
         if (ENABLE_INFO) {
-          Info("FollowProlongation", "Track propagation failed for track %i candidate %i in layer %i (pt=%f, x=%f, mR[layer]=%f)", iTrack, iCandidate, iLayer, trkWork->getPt(), trkWork->getX(), mR[2*kNLayers+iLayer]);
+          Info("FollowProlongation", "Track propagation failed for track %i candidate %i in layer %i (pt=%f, x=%f, mR[layer]=%f)", iTrack, iCandidate, iLayer, trkWork->getPt(), trkWork->getX(), mR[2 * kNLayers + iLayer]);
         }
         continue;
       }
