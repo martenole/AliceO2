@@ -631,7 +631,7 @@ GPUd() bool GPUTRDTracker::FollowProlongation(GPUTRDPropagator* prop, GPUTRDTrac
           int trkltIdx = mTrackletIndexArray[currDet] + iTrklt;
           //My_Float projY = trkWork->getY(), projZ = trkWork->getZ();
           My_Float projY, projZ;
-          prop->GetPropagatedYZ(mSpacePoints[trkltIdx].mR, projY, projZ);
+          prop->getPropagatedYZ(mSpacePoints[trkltIdx].mR, projY, projZ);
           /*
           if (!prop->propagateToX(mSpacePoints[trkltIdx].mR, .8f, 2.f)) {
             if (ENABLE_WARNING) {

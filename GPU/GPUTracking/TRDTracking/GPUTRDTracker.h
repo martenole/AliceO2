@@ -149,6 +149,7 @@ class GPUTRDTracker : public GPUProcessor
   GPUd() bool AdjustSector(GPUTRDPropagator* prop, GPUTRDTrack* t, const int layer) const;
   GPUd() int GetSector(float alpha) const;
   GPUd() float GetAlphaOfSector(const int sec) const;
+  // TODO all parametrizations depend on B-field -> need to find correct description.. To be put in CCDB in the future?
   GPUd() float GetRPhiRes(float snp) const { return (0.04f * 0.04f + 0.33f * 0.33f * (snp - 0.126f) * (snp - 0.126f)); } // parametrization obtained from track-tracklet residuals
   GPUd() float GetAngularResolution(float snp) const { return 0.0415f * 0.0415f + 0.43f * 0.43f * (snp - 0.147f) * (snp - 0.147f); }
   GPUd() float ConvertAngleToDy(float snp) const { return 0.132f + 2.379f * snp - 0.517f * snp * snp; } // more accurate than sin(phi) = (dy / xDrift) / sqrt(1+(dy/xDrift)^2)

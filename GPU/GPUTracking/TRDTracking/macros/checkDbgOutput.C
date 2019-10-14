@@ -740,7 +740,7 @@ void TwoTrackletEfficiency(Int_t nEntries = -1)
     if (trackID < 0) {
       continue;
     }
-    if (findable->Sum() < 1) {
+    if (findable->Sum() < 2) {
       continue;
     }
     Double_t pt = trackPtTPC;
