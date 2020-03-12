@@ -175,7 +175,7 @@ static const Int_t nCandidates[nCandidatesSweep] = {1, 2, 3};
 static const Int_t maxMissingLayers[maxMissingLayersSweep] = {4};
 static const Int_t chi2Penalty[chi2PenaltySweep] = {16};
 
-static const Bool_t isInteractive = kTRUE;
+static const Bool_t isInteractive = kFALSE;
 
 // functions
 Bool_t InitAnalysis(const char* filename = "TRDhlt.root", Bool_t isMC = kTRUE);
@@ -503,15 +503,21 @@ void FitRPhiVsChamber(Bool_t rawTrkltPosition = kTRUE)
   if (!tree) {
     return;
   }
+  fOut = new TFile("results.root", "update");
+  TH2F* hisRPhiDet = new TH2F("rphiDet", "", 540, -0.5, 539.5, 50, -0.5, 0.5);
   if (rawTrkltPosition) {
-    tree->Draw("GetDeltaRPhi(layer, 1, 1):trackletDet.fElements>>hisRPhiDet(540, -0.5, 539.5, 50, -0.5, 0.5)", "isGold&&lowMult&&LoadBranches(Entry$)", "colz");
-    ((TH2*)tree->GetHistogram())->FitSlicesY();
-    ((TH1*)gROOT->FindObject("hisRPhiDet_1"))->Draw();
+    tree->Draw("GetDeltaRPhi(layer, 1, 1):trackletDet.fElements>>rphiDet", "nTracklets>4&&lowMult&&LoadBranches(Entry$)", "colz");
+    //hisRPhiDet->FitSlicesY();
+    //((TH1*)gROOT->FindObject("hisRPhiDet_1"))->Draw();
   } else {
-    tree->Draw("GetDeltaRPhi(layer, 1, 0):trackletDet.fElements>>hisRPhiDet(540, -0.5, 539.5, 50, -0.5, 0.5)", "isGold&&lowMult&&LoadBranches(Entry$)", "colz");
-    ((TH2*)tree->GetHistogram())->FitSlicesY();
-    ((TH1*)gROOT->FindObject("hisRPhiDet_1"))->Draw();
+    tree->Draw("GetDeltaRPhi(layer, 1, 0):trackletDet.fElements>>rphiDet", "isGold&&lowMult&&LoadBranches(Entry$)", "colz");
+    //hisRPhiDet->FitSlicesY();
+    //((TH1*)gROOT->FindObject("hisRPhiDet_1"))->Draw();
   }
+  hisRPhiDet->Write();
+  delete hisRPhiDet;
+  fOut->Close();
+  delete fOut;
 }
 
 void CheckRadialOffset()
@@ -1004,15 +1010,25 @@ void PlotOnlineTrackletEfficiency(Int_t nEntries = -1)
   MakeLogScale(hAllNeg, 0.2, 12);
   MakeLogScale(hFracNeg, 0.2, 12);
   MakeLogScale(hEffNeg, 0.2, 12);
+  TH1F* hAllOffNeg = new TH1F("allOffNeg", "tmp histogram;pT (GeV);counts", 10, 0, 5);
+  TH1F* hFracOffNeg = new TH1F("fracOffNeg", "tmp histogram;pT (GeV);counts", 10, 0, 5);
+  TH1F* hEffOffNeg = new TH1F("effOffNeg", "online tracklet efficiency;p_{T} (GeV/#it{c});efficiency", 10, 0, 5);
+  hAllOffNeg->Sumw2();
+  hFracOffNeg->Sumw2();
+  MakeLogScale(hAllOffNeg, 0.2, 12);
+  MakeLogScale(hFracOffNeg, 0.2, 12);
+  MakeLogScale(hEffOffNeg, 0.2, 12);
   for (Int_t iEntry = 0; iEntry < nEntries; iEntry++) {
     tree->GetEntry(iEntry);
     if (trackID < 0 || TMath::Abs(trackPID) != 211) {
       continue;
     }
-    for (Int_t iLy = 1; iLy < 6; iLy++) {
-      if ((*findable)[iLy] < 1 || (*findableMC)[iLy] < 1) {
+    Int_t nTrackletsAvailable = 0;
+    for (Int_t iLy = 0; iLy < 6; iLy++) {
+      if (/*(*findable)[iLy] < 1 ||*/ (*findableMC)[iLy] < 1) {
         continue;
       }
+      ++nTrackletsAvailable;
       Double_t trkPt = (*trackPt)[iLy];
       //(*trackQPt)[iLy] > 0 ? hAllPos->Fill(trkPt) : hAllNeg->Fill(trkPt);
       trackPID == 211 ? hAllPos->Fill(trkPt) : hAllNeg->Fill(trkPt);
@@ -1021,11 +1037,14 @@ void PlotOnlineTrackletEfficiency(Int_t nEntries = -1)
         trackPID == 211 ? hFracPos->Fill(trkPt) : hFracNeg->Fill(trkPt);
       }
     }
+    for (Int_t i=0; i<nTrackletsAvailable; ++i) { hAllOffNeg->Fill((*trackPt)[0]); }
+    for (Int_t i=0; i<nTrackletsOffline; ++i) { hFracOffNeg->Fill((*trackPt)[0]); }
   }
   gStyle->SetOptStat(0);
   gStyle->SetErrorX(0);
   hEffPos->Divide(hFracPos, hAllPos, 1, 1, "B");
   hEffNeg->Divide(hFracNeg, hAllNeg, 1, 1, "B");
+  hEffOffNeg->Divide(hFracOffNeg, hAllOffNeg, 1, 1, "B");
   //TCanvas* c1 = new TCanvas("c1", "c1");
   //c1->SetGridy();
   //c1->SetGridx();
@@ -1044,6 +1063,8 @@ void PlotOnlineTrackletEfficiency(Int_t nEntries = -1)
   delete hEffPos;
   hEffNeg->Write();
   delete hEffNeg;
+  hEffOffNeg->Write();
+  delete hEffOffNeg;
   fOut->Close();
 }
 
