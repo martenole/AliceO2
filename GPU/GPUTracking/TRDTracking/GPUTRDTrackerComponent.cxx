@@ -209,6 +209,8 @@ int GPUTRDTrackerComponent::DoInit(int argc, const char** argv)
   if (fVerboseDebugOutput) {
     fTracker->EnableDebugOutput();
   }
+  fTracker->EnableDebugOutput();
+  fTracker->StartDebugging();
   fRec->RegisterGPUProcessor(fTracker, false);
   fChain->SetTRDGeometry(reinterpret_cast<o2::trd::TRDGeometryFlat*>(fGeo));
   if (fRec->Init()) {
@@ -380,9 +382,13 @@ int GPUTRDTrackerComponent::DoEvent(const AliHLTComponentEventData& evtData, con
     fTracker->LoadTrack(tracksTPC[iTrack], tracksTPCLab[iTrack]);
   }
 
+  fTracker->DumpTracksToFile(0);
+
   fBenchmark.Start(1);
   fTracker->DoTracking(NULL);
   fBenchmark.Stop(1);
+
+  fTracker->DumpTracksToFile(1);
 
   GPUTRDTrack* trackArray = fTracker->Tracks();
   int nTracks = fTracker->NTracks();

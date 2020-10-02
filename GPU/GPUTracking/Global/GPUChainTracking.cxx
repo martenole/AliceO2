@@ -2288,7 +2288,9 @@ int GPUChainTracking::RunTRDTracking()
     }
   }
 
+  Tracker.DumpTracksToFile(0);
   Tracker.DoTracking(this);
+  Tracker.DumpTracksToFile(1);
 
   mIOPtrs.nTRDTracks = Tracker.NTracks();
   mIOPtrs.trdTracks = Tracker.Tracks();

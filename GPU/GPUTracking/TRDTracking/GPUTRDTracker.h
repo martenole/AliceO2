@@ -201,6 +201,7 @@ class GPUTRDTracker_t : public GPUProcessor
   GPUd() GPUTRDSpacePointInternal* SpacePoints() const { return mSpacePoints; }
   GPUd() GPUTRDTrackletWord* Tracklets() const { return mTracklets; }
   GPUd() void DumpTracks();
+  GPUd() void DumpTracksToFile(int stage = 0);
 
  protected:
   float* mR;                               // radial position of each TRD chamber, alignment taken into account, radial spread within chambers < 7mm

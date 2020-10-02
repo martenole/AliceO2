@@ -39,6 +39,7 @@ class GPUTPCGMPolynomialField;
 #endif
 #include <chrono>
 #include <vector>
+#include <fstream>
 #endif
 #ifdef GPUCA_ALIROOT_LIB
 #include "TDatabasePDG.h"
@@ -457,6 +458,43 @@ GPUd() void GPUTRDTracker_t<TRDTRK, PROP>::DumpTracks()
     GPUInfo("track %i: x=%f, alpha=%f, nTracklets=%i, pt=%f", i, trk->getX(), trk->getAlpha(), trk->GetNtracklets(), trk->getPt());
   }
 }
+
+template <class TRDTRK, class PROP>
+GPUd() void GPUTRDTracker_t<TRDTRK, PROP>::DumpTracksToFile(int stage)
+{
+  //--------------------------------------------------------------------
+  // Dump all track information to a file.
+  // stage = 0 is before the TRD tracking starts, stage = 1 after it has finished
+  // The file contains the following information in columns:
+  // track X, track Y, track Z, sigY2, sigZ2, pt, nTracklets
+  //--------------------------------------------------------------------
+  std::ofstream outFile;
+  if (stage == 0) {
+    outFile.open("trdDebugOutputStart.txt", std::ios::app);
+  }
+  else if (stage == 1) {
+    outFile.open("trdDebugOutputEnd.txt", std::ios::app);
+  }
+  else {
+    return;
+  }
+  for (int i = 0; i < mNTracks; ++i) {
+    auto* trk = &(mTracks[i]);
+    outFile << mNEvents << " ";
+    outFile << trk->getAlpha() << " ";
+    outFile << trk->getX() << " ";
+    outFile << trk->getY() << " ";
+    outFile << trk->getZ() << " ";
+    outFile << trk->getSigmaY2() << " ";
+    outFile << trk->getSigmaZ2() << " ";
+    outFile << trk->getPt() << " ";
+    outFile << trk->GetChi2() << " ";
+    outFile << trk->GetNtracklets() << "\n";
+  }
+  outFile.close();
+}
+
+
 
 template <class TRDTRK, class PROP>
 GPUd() int GPUTRDTracker_t<TRDTRK, PROP>::GetCollisionID(float trkTime) const
