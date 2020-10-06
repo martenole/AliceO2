@@ -51,10 +51,11 @@ typedef float My_Float;
 #endif
 
 #if defined(TRD_TRACK_TYPE_ALIROOT)
-typedef AliExternalTrackParam TRDBaseTrack;
-typedef AliExternalTrackParam TRDBaseTrackGPU;
-// class GPUTPCGMTrackParam;
-// typedef GPUTPCGMTrackParam TRDBaseTrack;
+// typedef AliExternalTrackParam TRDBaseTrack;
+// typedef AliExternalTrackParam TRDBaseTrackGPU;
+class GPUTPCGMTrackParam;
+typedef GPUTPCGMTrackParam TRDBaseTrack;
+typedef GPUTPCGMTrackParam TRDBaseTrackGPU;
 #elif defined(TRD_TRACK_TYPE_O2)
 typedef o2::dataformats::TrackTPCITS TRDBaseTrack;
 class GPUTPCGMTrackParam;
@@ -62,10 +63,11 @@ typedef GPUTPCGMTrackParam TRDBaseTrackGPU;
 #endif
 
 #ifdef GPUCA_ALIROOT_LIB
-typedef AliTrackerBase TRDBasePropagator;
-typedef AliTrackerBase TRDBasePropagatorGPU;
-// class GPUTPCGMPropagator;
-// typedef GPUTPCGMPropagator TRDBasePropagator;
+// typedef AliTrackerBase TRDBasePropagator;
+// typedef AliTrackerBase TRDBasePropagatorGPU;
+class GPUTPCGMPropagator;
+typedef GPUTPCGMPropagator TRDBasePropagator;
+typedef GPUTPCGMPropagator TRDBasePropagatorGPU;
 #else
 typedef o2::base::Propagator TRDBasePropagator;
 class GPUTPCGMPropagator;
