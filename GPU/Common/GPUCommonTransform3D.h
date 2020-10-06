@@ -60,7 +60,7 @@ class Transform3D
     out[2] = m[kXZ] * in[0] + m[kYZ] * in[1] + m[kZZ] * in[2];
   }
 
-  GPUd() void LocalToMaster(const float* in, float* out) const { ApplyInverse(in, out); }
+  GPUd() void LocalToMaster(const float* in, float* out) const { Apply(in, out); }
 
  private:
   float m[12];
