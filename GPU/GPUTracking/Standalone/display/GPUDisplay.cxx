@@ -1236,7 +1236,7 @@ int GPUDisplay::DrawGLScene_internal(bool mixAnimation, float mAnimateTime)
       const auto& sp = trdTracker().SpacePoints()[i];
       int iSec = mChain->GetTRDGeometry()->GetSector(trdTracker().Tracklets()[i].GetDetector());
       float4* ptr = &mGlobalPosTRD[i];
-      mChain->GetParam().Slice2Global(iSec, sp.mR + mXadd, sp.mX[0], sp.mX[1], &ptr->x, &ptr->y, &ptr->z);
+      mChain->GetParam().Slice2Global(iSec, sp.mR + mXadd, sp.mYZ[0], sp.mYZ[1], &ptr->x, &ptr->y, &ptr->z);
       ptr->x /= GL_SCALE_FACTOR;
       ptr->y /= GL_SCALE_FACTOR;
       ptr->z /= GL_SCALE_FACTOR;
@@ -1245,7 +1245,7 @@ int GPUDisplay::DrawGLScene_internal(bool mixAnimation, float mAnimateTime)
       }
       ptr->w = tTRDCLUSTER;
       ptr = &mGlobalPosTRD2[i];
-      mChain->GetParam().Slice2Global(iSec, sp.mR + mXadd + 4.5f, sp.mX[0] + 1.5f * sp.mDy, sp.mX[1], &ptr->x, &ptr->y, &ptr->z);
+      mChain->GetParam().Slice2Global(iSec, sp.mR + mXadd + 4.5f, sp.mYZ[0] + 1.5f * sp.mDy, sp.mYZ[1], &ptr->x, &ptr->y, &ptr->z);
       ptr->x /= GL_SCALE_FACTOR;
       ptr->y /= GL_SCALE_FACTOR;
       ptr->z /= GL_SCALE_FACTOR;

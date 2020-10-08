@@ -465,8 +465,8 @@ int GPUTRDTrackerComponent::DoEvent(const AliHLTComponentEventData& evtData, con
       }
       GPUTRDTrackPoint* currOutPoint = &outTrackPoints->fPoints[id];
       currOutPoint->fX[0] = sp.mR;    // x in sector coordinates
-      currOutPoint->fX[1] = sp.mX[0]; // y in sector coordinates
-      currOutPoint->fX[2] = sp.mX[1]; // z in sector coordinates
+      currOutPoint->fX[1] = sp.mYZ[0]; // y in sector coordinates
+      currOutPoint->fX[2] = sp.mYZ[1]; // z in sector coordinates
       currOutPoint->fVolumeId = sp.mVolumeId;
     }
     AliHLTComponentBlockData resultDataSP;

@@ -70,6 +70,7 @@ class GPUTRDTracker_t : public GPUProcessor
   void DoTracking(GPUChainTracking* chainTracking);
   void SetNCandidates(int n);
   void PrintSettings() const;
+  void StoreDebuggingInfoForTrack(TRDTRK* t);
   bool IsInitialized() const { return mIsInitialized; }
   void StartDebugging();
 #endif
@@ -82,7 +83,7 @@ class GPUTRDTracker_t : public GPUProcessor
   // struct to hold the information on the space points
   struct GPUTRDSpacePointInternal {
     float mR;                 // x position (3.5 mm above anode wires) - radial offset due to t0 mis-calibration, measured -1 mm for run 245353
-    float mX[2];              // y and z position (sector coordinates)
+    float mYZ[2];             // y and z position (sector coordinates)
     My_Float mCov[3];         // sigma_y^2, sigma_yz, sigma_z^2
     float mDy;                // deflection over drift length
     int mId;                  // index
