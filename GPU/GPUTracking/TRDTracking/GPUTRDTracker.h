@@ -183,6 +183,7 @@ class GPUTRDTracker_t : public GPUProcessor
   GPUd() void SetExtraRoadY(float extraRoadY) { mExtraRoadY = extraRoadY; }
   GPUd() void SetRoadZ(float roadZ) { mRoadZ = roadZ; }
 
+  GPUd() const GPUTRDGeometry* GetGeometry() const { return mGeo; }
   GPUd() AliMCEvent* GetMCEvent() const { return mMCEvent; }
   GPUd() bool GetIsDebugOutputOn() const { return mDebugOutput; }
   GPUd() float GetPtThreshold() const { return mMinPt; }

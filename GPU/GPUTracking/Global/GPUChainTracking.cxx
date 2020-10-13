@@ -2275,6 +2275,12 @@ int GPUChainTracking::RunTRDTracking()
     if (!trk.OK()) {
       continue;
     }
+    float pT = CAMath::Abs(trk.GetParam().GetQPt()) > 0 ? CAMath::Abs(1.f / trk.GetParam().GetQPt()) : -1.f;
+    if (pT < Tracker.GetPtThreshold()) {
+      GPUTPCGMMergedTrack& trkNonConst = const_cast<GPUTPCGMMergedTrack&>(trk);
+      trkNonConst.SetFlags(0x00);
+      continue;
+    }
     if (trk.Looper()) {
       continue;
     }

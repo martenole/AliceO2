@@ -170,7 +170,7 @@ class GPUDisplay
     float pointSize = 2.0;
     float lineWidth = 1.4;
 
-    bool drawTPC = true;
+    bool drawTPC = false;
     bool drawTRD = true;
   };
 
