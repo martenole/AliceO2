@@ -152,7 +152,6 @@ GPUd() int GPUTPCCompressionTrackModel::Propagate(float x, float alpha)
 
   float Bz = getBz(mTrk.x, mTrk.y, mTrk.z);
 
-
   // propagate mTrk to t0e
   PhysicalTrackModel t0e(mTrk);
   float dLp = 0;
@@ -296,7 +295,7 @@ GPUd() int GPUTPCCompressionTrackModel::Mirror()
   float dy = -2.f * mTrk.q * mTrk.px / Bz;
   float dS; // path in XY
   {
-    float chord = dy;       // chord to the extrapolated point == |dy|*sign(x direction)
+    float chord = dy;        // chord to the extrapolated point == |dy|*sign(x direction)
     float sa = -mTrk.cosphi; //  sin( half of the rotation angle ) ==  (chord/2) / radius
 
     // dS = (Pt/b)*2*arcsin( sa )
@@ -454,7 +453,6 @@ GPUd() int GPUTPCCompressionTrackModel::rotateToAlpha(float newAlpha)
   // calculate X of rotated track:
   float trackX = x0 * cc + ss * mP[0];
 
-
   // transport t0 to trackX
   float B[3];
   getBxByBz(CAMath::Cos(newAlpha), CAMath::Sin(newAlpha), t0.x, t0.y, t0.z, B);
@@ -462,7 +460,6 @@ GPUd() int GPUTPCCompressionTrackModel::rotateToAlpha(float newAlpha)
   if (propagateToXBxByBz(t0, trackX, B[0], B[1], B[2], dLp)) {
     return -1;
   }
-
 
   if (CAMath::Abs(t0.sinphi) >= GPUCA_MAX_SIN_PHI) {
     return -1;
@@ -486,7 +483,7 @@ GPUd() int GPUTPCCompressionTrackModel::rotateToAlpha(float newAlpha)
   // float dy = mT->Y() - y0;
   // float ds = mT->SinPhi() - mTrk.SinPhi();
 
-  mX = trackX;                  // == x0*cc + ss*mP[0]  == t0.x + j0*dy;
+  mX = trackX;                   // == x0*cc + ss*mP[0]  == t0.x + j0*dy;
   mP[0] = -x0 * ss + cc * mP[0]; //== t0.y + j0*dy;
   // mP[2] = py1/pt0 + j1*ds; // == t0.sinphi + j1*ds; // use py1, since t0.sinphi can have different sign
   mP[2] = -CAMath::Sqrt(1.f - mP[2] * mP[2]) * ss + mP[2] * cc;
@@ -508,7 +505,6 @@ GPUd() int GPUTPCCompressionTrackModel::rotateToAlpha(float newAlpha)
   c[3] *= j1;
   c[5] *= j1 * j1;
   c[12] *= j1;
-
 
   if (setDirectionAlongX(t0)) { // change direction if Px < 0
     mP[2] = -mP[2];
