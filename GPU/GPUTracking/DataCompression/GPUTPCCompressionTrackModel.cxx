@@ -126,7 +126,7 @@ GPUd() void GPUTPCCompressionTrackModel::Init(float x, float y, float z, float a
   mP[4] = (qPt - 127.f) * (20.f / 127.f);
   resetCovariance();
   mNDF = -5;
-  mField = &param.polynomialField;
+  mBz = param.ConstBz;
   float pti = CAMath::Abs(mP[4]);
   if (pti < 1.e-4f) {
     pti = 1.e-4f; // set 10.000 GeV momentum for straight track
@@ -163,22 +163,20 @@ GPUd() int GPUTPCCompressionTrackModel::Propagate(float x, float alpha)
     return 0;
   }
 
-  float Bz = getBz(mTrk.x, mTrk.y, mTrk.z);
-
   // propagate mTrk to t0e
   PhysicalTrackModel t0e(mTrk);
   float dLp = 0;
   if (CAMath::Abs(x - t0e.x) < 1.e-8f) {
     return 0;
   }
-  if (propagateToXBzLightNoUpdate(t0e, x, Bz, dLp)) {
+  if (propagateToXBzLightNoUpdate(t0e, x, mBz, dLp)) {
     return 1;
   }
   updatePhysicalTrackValues(t0e);
   if (CAMath::Abs(t0e.sinphi) >= MaxSinPhi) {
     return -3;
   }
-  return followLinearization(t0e, Bz, dLp);
+  return followLinearization(t0e, mBz, dLp);
 }
 
 GPUd() int GPUTPCCompressionTrackModel::Filter(float y, float z, int iRow)
@@ -294,11 +292,7 @@ GPUd() int GPUTPCCompressionTrackModel::Filter(float y, float z, int iRow)
 
 GPUd() int GPUTPCCompressionTrackModel::Mirror()
 {
-  float Bz = getBz(mTrk.x, mTrk.y, mTrk.z);
-  if (CAMath::Abs(Bz) < 1.e-8f) {
-    Bz = 1.e-8f;
-  }
-  float dy = -2.f * mTrk.q * mTrk.px / Bz;
+  float dy = -2.f * mTrk.q * mTrk.px / mBz;
   float dS; // path in XY
   {
     float chord = dy;        // chord to the extrapolated point == |dy|*sign(x direction)
@@ -359,25 +353,6 @@ GPUd() int GPUTPCCompressionTrackModel::Mirror()
   mC44 = mC44 * corr * corr + dLabs * mMaterial.sigmadE2;
 
   return 0;
-}
-
-GPUd() void GPUTPCCompressionTrackModel::getBxByBz(float cosAlpha, float sinAlpha, float x, float y, float z, float b[3]) const
-{
-  float xGlb = x * cosAlpha - y * sinAlpha;
-  float yGlb = x * sinAlpha + y * cosAlpha;
-  float bb[3];
-  mField->GetField(xGlb, yGlb, z, bb);
-  // rotate field to local coordinates
-  b[0] = bb[0] * cosAlpha + bb[1] * sinAlpha;
-  b[1] = -bb[0] * sinAlpha + bb[1] * cosAlpha;
-  b[2] = bb[2];
-}
-
-GPUd() float GPUTPCCompressionTrackModel::getBz(float x, float y, float z) const
-{
-  float xGlb = x * mCosAlpha - y * mSinAlpha;
-  float yGlb = x * mSinAlpha + y * mCosAlpha;
-  return mField->GetFieldBz(xGlb, yGlb, z);
 }
 
 GPUd() void GPUTPCCompressionTrackModel::updatePhysicalTrackValues(PhysicalTrackModel& trk)
@@ -460,12 +435,11 @@ GPUd() int GPUTPCCompressionTrackModel::rotateToAlpha(float newAlpha)
   float trackX = x0 * cc + ss * mP[0];
 
   // transport t0 to trackX
-  float B[3];
-  getBxByBz(CAMath::Cos(newAlpha), CAMath::Sin(newAlpha), t0.x, t0.y, t0.z, B);
   float dLp = 0;
-  if (propagateToXBxByBz(t0, trackX, B[0], B[1], B[2], dLp)) {
+  if (propagateToXBzLightNoUpdate(t0, trackX, mBz, dLp)) {
     return -1;
   }
+  updatePhysicalTrackValues(t0);
 
   if (CAMath::Abs(t0.sinphi) >= MaxSinPhi) {
     return -1;
@@ -531,7 +505,7 @@ GPUd() int GPUTPCCompressionTrackModel::rotateToAlpha(float newAlpha)
   // only covariance changes. Use rotated and transported t0 for linearisation
   float j3 = -t0.py / t0.px;
   float j4 = -t0.pz / t0.px;
-  float j5 = t0.qpt * B[2];
+  float j5 = t0.qpt * mBz;
 
   //                    Y  Z Sin DzDs q/p  X
   // Jacobian J1 = { {  1, 0, 0,  0,  0,  j3 }, // Y
