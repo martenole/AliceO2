@@ -355,7 +355,6 @@ GPUd() int GPUTPCCompressionTrackModel::Mirror()
   return 0;
 }
 
-
 GPUd() void GPUTPCCompressionTrackModel::updatePhysicalTrackValues(PhysicalTrackModel& trk)
 {
   float px = trk.px;
