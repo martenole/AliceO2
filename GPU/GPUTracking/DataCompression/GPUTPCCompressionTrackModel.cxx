@@ -541,7 +541,6 @@ GPUd() int GPUTPCCompressionTrackModel::rotateToAlpha(float newAlpha)
   return 0;
 }
 
-
 GPUd() int GPUTPCCompressionTrackModel::propagateToXBzLightNoUpdate(PhysicalTrackModel& t, float x, float Bz, float& dLp)
 {
   //
