@@ -24,6 +24,7 @@
 #include <fstream>
 #include <mutex>
 #include <condition_variable>
+#include <valgrind/callgrind.h>
 
 #include "GPUChainTracking.h"
 #include "GPUTPCClusterData.h"
@@ -2099,7 +2100,9 @@ int GPUChainTracking::RunTPCCompression()
   WriteToConstantMemory(myStep, (char*)&processors()->tpcCompressor - (char*)processors(), &CompressorShadow, sizeof(CompressorShadow), 0);
   TransferMemoryResourcesToGPU(myStep, &Compressor, 0);
   runKernel<GPUMemClean16>(GetGridAutoStep(0, RecoStep::TPCCompression), krnlRunRangeNone, krnlEventNone, CompressorShadow.mClusterStatus, Compressor.mMaxClusters * sizeof(CompressorShadow.mClusterStatus[0]));
+  CALLGRIND_START_INSTRUMENTATION;
   runKernel<GPUTPCCompressionKernels, GPUTPCCompressionKernels::step0attached>(GetGridAuto(0), krnlRunRangeNone, krnlEventNone);
+  CALLGRIND_STOP_INSTRUMENTATION;
   runKernel<GPUTPCCompressionKernels, GPUTPCCompressionKernels::step1unattached>(GetGridAuto(0), krnlRunRangeNone, krnlEventNone);
   TransferMemoryResourcesToHost(myStep, &Compressor, 0);
 #ifdef GPUCA_TPC_GEOMETRY_O2
