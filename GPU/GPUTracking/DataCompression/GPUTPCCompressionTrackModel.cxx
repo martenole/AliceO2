@@ -141,7 +141,7 @@ GPUd() void GPUTPCCompressionTrackModel::Init(float x, float y, float z, float a
   mTrk.py = 0.f;
   mTrk.pz = 0.f;
   mTrk.qpt = mTrk.q * pti;
-  calculateMaterialCorrection();
+  //calculateMaterialCorrection();
 }
 
 GPUd() int GPUTPCCompressionTrackModel::Propagate(float x, float alpha)
@@ -318,6 +318,7 @@ GPUd() int GPUTPCCompressionTrackModel::Mirror()
   mTrk.z = mTrk.z + 2.f * mTrk.dzds * dS;
   changeDirection();
 
+  /*
   // Energy Loss
 
   float dL = std::copysignf(dS * mTrk.dlds, -1.f); // we are in flight direction
@@ -351,7 +352,7 @@ GPUd() int GPUTPCCompressionTrackModel::Mirror()
   mC42 *= corr;
   mC43 *= corr;
   mC44 = mC44 * corr * corr + dLabs * mMaterial.sigmadE2;
-
+  */
   return 0;
 }
 
@@ -540,97 +541,6 @@ GPUd() int GPUTPCCompressionTrackModel::rotateToAlpha(float newAlpha)
   return 0;
 }
 
-GPUd() int GPUTPCCompressionTrackModel::propagateToXBxByBz(PhysicalTrackModel& t, float x, float Bx, float By, float Bz, float& dLp)
-{
-  //
-  // transport the track to X=x in magnetic field B = ( Bx, By, Bz )[kG*0.000299792458]
-  // xyzPxPyPz as well as all the additional values will change. No need to call UpdateValues() afterwards.
-  // the method returns error code (0 == no error)
-  //
-  dLp = 0.f;
-
-  // Rotate to the system where Bx=By=0.
-
-  float bt = CAMath::Sqrt(Bz * Bz + By * By);
-  float bb = CAMath::Sqrt(Bx * Bx + By * By + Bz * Bz);
-
-  float c1 = 1.f, s1 = 0.f;
-  float c2 = 1.f, s2 = 0.f;
-
-  if (bt > 1.e-4f) {
-    c1 = Bz / bt;
-    s1 = By / bt;
-    c2 = bt / bb;
-    s2 = -Bx / bb;
-  }
-
-  // rotation matrix: first around x, then around y'
-  // after the first rotation: Bx'==Bx, By'==0, Bz'==Bt, X'==X
-  // after the second rotation: Bx''==0, By''==0, Bz''==B, X'' axis is as close as possible to the original X
-
-  //
-  //     ( c2 0 s2 )   ( 1  0   0 )
-  // R = (  0 1 0  ) X ( 0 c1 -s1 )
-  //     (-s2 0 c2 )   ( 0 s1  c1 )
-  //
-
-  float R0[3] = {c2, s1 * s2, c1 * s2};
-  float R1[3] = {0, c1, -s1};
-  float R2[3] = {-s2, s1 * c2, c1 * c2};
-
-  // parameters and the extrapolation point in the rotated coordinate system
-  {
-    float lx = t.x, ly = t.y, lz = t.z, lpx = t.px, lpy = t.py, lpz = t.pz;
-
-    t.x = R0[0] * lx + R0[1] * ly + R0[2] * lz;
-    t.y = R1[0] * lx + R1[1] * ly + R1[2] * lz;
-    t.z = R2[0] * lx + R2[1] * ly + R2[2] * lz;
-
-    t.px = R0[0] * lpx + R0[1] * lpy + R0[2] * lpz;
-    t.py = R1[0] * lpx + R1[1] * lpy + R1[2] * lpz;
-    t.pz = R2[0] * lpx + R2[1] * lpy + R2[2] * lpz;
-  }
-
-  float dx = x - mX;
-  float xe = t.x + dx; // propagate on same dx in rotated system
-
-  // transport in rotated coordinate system to X''=xe:
-
-  if (t.px < (1.f - MaxSinPhi)) {
-    t.px = 1.f - MaxSinPhi;
-  }
-  if (propagateToXBzLightNoUpdate(t, xe, bb, dLp) != 0) {
-    return -1;
-  }
-
-  // rotate coordinate system back to the original R{-1}==R{T}
-  {
-    float lx = t.x, ly = t.y, lz = t.z, lpx = t.px, lpy = t.py, lpz = t.pz;
-
-    t.x = R0[0] * lx + R1[0] * ly + R2[0] * lz;
-    t.y = R0[1] * lx + R1[1] * ly + R2[1] * lz;
-    t.z = R0[2] * lx + R1[2] * ly + R2[2] * lz;
-
-    t.px = R0[0] * lpx + R1[0] * lpy + R2[0] * lpz;
-    t.py = R0[1] * lpx + R1[1] * lpy + R2[1] * lpz;
-    t.pz = R0[2] * lpx + R1[2] * lpy + R2[2] * lpz;
-  }
-
-  // a small (hopefully) additional step to X=x. Perhaps it may be replaced by linear extrapolation.
-
-  float ddLp = 0;
-  if (t.px < (1.f - MaxSinPhi)) {
-    t.px = 1.f - MaxSinPhi;
-  }
-  if (propagateToXBzLightNoUpdate(t, x, Bz, ddLp) != 0) {
-    return -1;
-  }
-
-  dLp += ddLp;
-
-  updatePhysicalTrackValues(t);
-  return 0;
-}
 
 GPUd() int GPUTPCCompressionTrackModel::propagateToXBzLightNoUpdate(PhysicalTrackModel& t, float x, float Bz, float& dLp)
 {
@@ -858,6 +768,7 @@ GPUd() int GPUTPCCompressionTrackModel::followLinearization(const PhysicalTrackM
     // c[14] = c44;
   }
 
+  /*
   float& mC22 = c[5];
   float& mC33 = c[9];
   float& mC40 = c[10];
@@ -865,6 +776,7 @@ GPUd() int GPUTPCCompressionTrackModel::followLinearization(const PhysicalTrackM
   float& mC42 = c[12];
   float& mC43 = c[13];
   float& mC44 = c[14];
+
 
   float dLmask = 0.f;
   bool maskMS = (CAMath::Abs(dL) < mMaterial.DLMax);
@@ -901,10 +813,12 @@ GPUd() int GPUTPCCompressionTrackModel::followLinearization(const PhysicalTrackM
     mC43 += dLabs * mMaterial.k43;
     mC44 += dLabs * mMaterial.k44;
   }
+  */
 
   return 0;
 }
 
+/*
 GPUd() void GPUTPCCompressionTrackModel::calculateMaterialCorrection()
 {
   const float mass = 0.13957f;
@@ -978,6 +892,7 @@ GPUd() float GPUTPCCompressionTrackModel::approximateBetheBloch(float beta2)
 
   return ret;
 }
+*/
 
 GPUd() void GPUTPCCompressionTrackModel::getClusterRMS2(int iRow, float z, float sinPhi, float DzDs, float& ErrY2, float& ErrZ2) const
 {

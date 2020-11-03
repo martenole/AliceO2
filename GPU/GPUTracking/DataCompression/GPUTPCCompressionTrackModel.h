@@ -91,12 +91,11 @@ class GPUTPCCompressionTrackModel
   GPUd() void updatePhysicalTrackValues(PhysicalTrackModel& trk);
   GPUd() void changeDirection();
   GPUd() int rotateToAlpha(float newAlpha);
-  GPUd() int propagateToXBxByBz(PhysicalTrackModel& t, float x, float Bx, float By, float Bz, float& dLp);
   GPUd() int propagateToXBzLightNoUpdate(PhysicalTrackModel& t, float x, float Bz, float& dLp);
   GPUd() bool setDirectionAlongX(PhysicalTrackModel& t);
   GPUd() int followLinearization(const PhysicalTrackModel& t0e, float Bz, float dLp);
-  GPUd() void calculateMaterialCorrection();
-  GPUd() float approximateBetheBloch(float beta2);
+  //GPUd() void calculateMaterialCorrection();
+  //GPUd() float approximateBetheBloch(float beta2);
   GPUd() void getClusterRMS2(int iRow, float z, float sinPhi, float DzDs, float& ErrY2, float& ErrZ2) const;
   GPUd() void resetCovariance();
 
@@ -116,6 +115,7 @@ class GPUTPCCompressionTrackModel
 
 #else // Default internal track model for compression
 
+  /*
   struct MaterialCorrection {
     GPUhd() MaterialCorrection() : radLen(28811.7f), rho(1.025e-3f), radLenInv(1.f / radLen), DLMax(0.f), EP2(0.f), sigmadE2(0.f), k22(0.f), k33(0.f), k43(0.f), k44(0.f) {}
 
@@ -123,7 +123,7 @@ class GPUTPCCompressionTrackModel
     float rho;                                                 // [g/cm^3]
     float radLenInv, DLMax, EP2, sigmadE2, k22, k33, k43, k44; // precalculated values for MS and EnergyLoss correction
   };
-
+  */
   // default TPC cluster error parameterization taken from GPUParam.cxx
   // clang-format off
   const float kParamRMS0[2][3][4] =
@@ -148,7 +148,7 @@ class GPUTPCCompressionTrackModel
 
   // propagation parameters
   float mBz;
-  MaterialCorrection mMaterial;
+  //MaterialCorrection mMaterial;
 
   PhysicalTrackModel mTrk;
 #endif
