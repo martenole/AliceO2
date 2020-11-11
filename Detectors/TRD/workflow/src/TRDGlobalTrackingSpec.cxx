@@ -132,7 +132,7 @@ void TRDGlobalTracking::run(ProcessingContext& pc)
 
   LOG(INFO) << "Start loading input into TRD tracker";
   // load everything into the tracker
-   int nTracksLoaded = 0;
+  int nTracksLoaded = 0;
   for (int iTrk = 0; iTrk < nTracks; ++iTrk) {
     const auto& match = tracksITSTPC[iTrk];
     const auto& trk = match.getParamOut();

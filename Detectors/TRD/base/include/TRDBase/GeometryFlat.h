@@ -54,7 +54,7 @@ class GeometryFlat : public o2::gpu::FlatObject, public GeometryBase
   GPUd() bool chamberInGeometry(int det) const
   {
     printf("Checking, if chamber %i is in geometry\n", det);
-    for (int i=0; i<constants::MAXCHAMBER; ++i) {
+    for (int i = 0; i < constants::MAXCHAMBER; ++i) {
       printf("%i(%i) \t", i, mMatrixIndirection[i]);
     }
     printf("\n");
