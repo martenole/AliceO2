@@ -238,7 +238,8 @@ void GPUTRDTracker_t<TRDTRK, PROP>::DoTracking(GPUChainTracking* chainTracking)
     }
 
     if (!CalculateSpacePoints(iColl)) {
-      GPUError("Space points for at least one chamber could not be calculated");
+      GPUError("Space points for at least one chamber could not be calculated (for interaction %i)", iColl);
+      break;
     }
   }
 
@@ -451,7 +452,7 @@ GPUd() int GPUTRDTracker_t<TRDTRK, PROP>::LoadTrack(const TRDTRK& trk, const int
     return (1);
   }
   if (checkTrack && !CheckTrackTRDCandidate(trk)) {
-    return 0;
+    return 2;
   }
 #ifdef GPUCA_ALIROOT_LIB
   new (&mTracks[mNTracks]) TRDTRK(trk); // We need placement new, since the class is virtual
@@ -580,7 +581,7 @@ GPUd() bool GPUTRDTracker_t<TRDTRK, PROP>::CalculateSpacePoints(int iCollision)
       xTrkltDet[1] = mTracklets[trkltIdx].GetY();
       xTrkltDet[2] = pp->GetRowPos(trkltZbin) - pp->GetRowSize(trkltZbin) / 2.f - pp->GetRowPos(pp->GetNrows() / 2);
       //GPUInfo("Space point local %i: x=%f, y=%f, z=%f", trkltIdx, xTrkltDet[0], xTrkltDet[1], xTrkltDet[2]);
-      matrix->LocalToMaster(xTrkltDet, xTrkltSec);
+      //matrix->LocalToMaster(xTrkltDet, xTrkltSec);
       mSpacePoints[trkltIdx].mR = xTrkltSec[0];
       mSpacePoints[trkltIdx].mX[0] = xTrkltSec[1];
       mSpacePoints[trkltIdx].mX[1] = xTrkltSec[2];

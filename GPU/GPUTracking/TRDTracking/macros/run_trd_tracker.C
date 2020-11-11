@@ -54,6 +54,8 @@ void run_trd_tracker(std::string path = "./",
   geo->createPadPlaneArray();
   geo->createClusterMatrixArray();
   const o2::trd::GeometryFlat geoFlat(*geo);
+  geoFlat.chamberInGeometry(0);
+  return;
 
   //-------- init GPU reconstruction --------//
   GPUSettingsEvent cfgEvent;                       // defaults should be ok
@@ -131,6 +133,8 @@ void run_trd_tracker(std::string path = "./",
   chainTracking->AllocateIOMemory();
   rec->PrepareEvent();
   rec->SetupGPUProcessor(tracker, true);
+
+  printf("Running with max %i threads and %i streams\n", rec->GetMaxThreads(), rec->NStreams());
 
   printf("Start loading input into TRD tracker\n");
   // load everything into the tracker

@@ -72,6 +72,7 @@ class GPUTRDTracker_t : public GPUProcessor
   void PrintSettings() const;
   bool IsInitialized() const { return mIsInitialized; }
   void StartDebugging();
+  TRD_GEOMETRY_CONST GPUTRDGeometry* GetGeometry() const { return mGeo; }
 #endif
 
   enum EGPUTRDTracker { kNLayers = 6,

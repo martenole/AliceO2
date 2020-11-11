@@ -50,6 +50,8 @@ void TRDGlobalTracking::init(InitContext& ic)
   geo->createPadPlaneArray();
   geo->createClusterMatrixArray();
   const GeometryFlat geoFlat(*geo);
+  printf("##### CHECK TRD GEOMETRY AFTER CREATION #####\n");
+  geoFlat.chamberInGeometry(0);
 
   //-------- init GPU reconstruction --------//
   GPUSettingsEvent cfgEvent;                 // defaults should be ok
@@ -84,6 +86,8 @@ void TRDGlobalTracking::init(InitContext& ic)
   mTracker->SetChi2Penalty(12);
   mTracker->SetStopTrkFollowingAfterNMissingLayers(6);
   mTracker->PrintSettings();
+  printf("##### CHECK TRD GEOMETRY LOADED INTO GPUTRDTRACKER #####\n");
+  mTracker->GetGeometry()->ChamberInGeometry(0);
 
   mTimer.Stop();
   mTimer.Reset();
@@ -91,6 +95,9 @@ void TRDGlobalTracking::init(InitContext& ic)
 
 void TRDGlobalTracking::run(ProcessingContext& pc)
 {
+  printf("##### CHECK TRD GEOMETRY IN run() method #####\n");
+  mTracker->GetGeometry()->ChamberInGeometry(0);
+  return;
   mTimer.Start(false);
   const auto tracksITSTPC = pc.inputs().get<gsl::span<o2::dataformats::TrackTPCITS>>("tpcitstrack");
   const auto trackletsTRD = pc.inputs().get<gsl::span<o2::trd::Tracklet64>>("trdtracklets");
@@ -121,9 +128,11 @@ void TRDGlobalTracking::run(ProcessingContext& pc)
   mChainTracking->AllocateIOMemory();
   mRec->PrepareEvent();
   mRec->SetupGPUProcessor(mTracker, true);
+  LOGF(INFO, "Running with max %i threads and %i streams\n", mRec->GetMaxThreads(), mRec->NStreams());
 
   LOG(INFO) << "Start loading input into TRD tracker";
   // load everything into the tracker
+   int nTracksLoaded = 0;
   for (int iTrk = 0; iTrk < nTracks; ++iTrk) {
     const auto& match = tracksITSTPC[iTrk];
     const auto& trk = match.getParamOut();
@@ -137,8 +146,11 @@ void TRDGlobalTracking::run(ProcessingContext& pc)
       trkLoad.setCov(trk.getCov()[i], i);
     }
     trkLoad.setTime(match.getTimeMUS().getTimeStamp());
-    mTracker->LoadTrack(trkLoad);
-    LOGF(INFO, "Loaded track %i with time %f", iTrk, trkLoad.getTime());
+    if (mTracker->LoadTrack(trkLoad)) {
+      continue;
+    }
+    ++nTracksLoaded;
+    LOGF(INFO, "Loaded track %i with time %f", nTracksLoaded, trkLoad.getTime());
   }
 
   for (int iTrklt = 0; iTrklt < nTracklets; ++iTrklt) {
