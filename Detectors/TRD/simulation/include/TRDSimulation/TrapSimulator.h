@@ -177,6 +177,7 @@ class TrapSimulator
   void printPidLutHuman();
 
   // I/O
+  void dumpToFile() const;
   void printFitRegXml(std::ostream& os) const;
   void printTrackletsXml(std::ostream& os) const;
   void printAdcDatTxt(std::ostream& os) const;

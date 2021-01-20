@@ -57,9 +57,10 @@ using namespace o2::trd::constants;
 
 #define infoTRAP 1
 
+
 bool TrapSimulator::mgApplyCut = true;
 int TrapSimulator::mgAddBaseline = 0;
-bool TrapSimulator::mgStoreClusters = true;
+bool TrapSimulator::mgStoreClusters = false;
 const int TrapSimulator::mgkFormatIndex = std::ios_base::xalloc();
 const std::array<unsigned short, 4> TrapSimulator::mgkFPshifts{11, 14, 17, 21};
 
@@ -1725,6 +1726,7 @@ void TrapSimulator::calcFitreg()
         qTotal[worse2] = 0;
         // LOG(debug) << "Kill ch " << worse2;
       }
+      // OS: do we need to kill 3 channels instead of 2 if we write out at max 3 tracklets?
     }
 
     for (adcch = 0; adcch < 19; adcch++) {
@@ -2740,4 +2742,59 @@ bool TrapSimulator::readPackedConfig(TrapConfig* cfg, int hc, unsigned int* data
   } // end while
   LOG(debug) << "no end marker! " << idx << " words read";
   return -err; // only if the max length of the block reached!
+}
+
+void TrapSimulator::dumpToFile() const
+{
+  TString fName = TString::Format("TRAPsimDump_%i_%i_%i.txt", mDetector, mRobPos, mMcmPos);
+  std::ofstream fOut(fName.Data());
+  if (fOut.is_open()) {
+    fOut << "Members of TrapSimulator:" << std::endl;
+    fOut << "mgApplyCut: " << mgApplyCut << std::endl;
+    fOut << "mgAddBaseline: " << mgAddBaseline << std::endl;
+    fOut << "mgStoreClusters: " << mgStoreClusters << std::endl;
+    fOut << "Parameters relevant for pedestal filter:" << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kFPNP, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kFPNP, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kFPTC, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kFPTC, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kFPBY, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kFPBY, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "Parameters relevant for gain filter:" << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kFGBY, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kFGBY, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::TrapReg_t(TrapConfig::kFGF0), mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::TrapReg_t(TrapConfig::kFGF0), mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::TrapReg_t(TrapConfig::kFGA0), mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::TrapReg_t(TrapConfig::kFGA0), mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kFGTA, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kFGTA, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kFGTB, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kFGTB, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "Parameters relevant for tail filter:" << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kFTAL, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kFTAL, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kFTLL, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kFTLL, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kFTLS, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kFTLS, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kFTBY, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kFTBY, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "Parameters relevant for CalcFitreg:" << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kTPFS, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kTPFS, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kTPQS0, mDetector, mRobPos, mMcmPos: " << mTrapConfig->getTrapReg(TrapConfig::kTPQS0, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kTPQS1, mDetector, mRobPos, mMcmPos): " <<  mTrapConfig->getTrapReg(TrapConfig::kTPQS1, mDetector, mRobPos, mMcmPos)<< std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kTPFE, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kTPFE, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kTPQE0, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kTPQE0, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kTPQE1, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kTPQE1, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "FeeParam::GetNadcMcm(): " << "N/A" << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kTPVBY, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kTPVBY, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kTPVT, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kTPVT, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kTPFP, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kTPFP, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kTPHT, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kTPHT, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg((TrapConfig::TrapReg_t) (TrapConfig::kTPL00), mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg((TrapConfig::TrapReg_t) (TrapConfig::kTPL00), mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "fFeeParam->GetPadRowFromMCM(mRobPos, mMcmPos): " << mFeeParam->getPadRowFromMCM(mRobPos, mMcmPos) << std::endl;
+    fOut << "Parameters relevant for TrackletSelection:" << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kTPCL, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kTPCL, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getTrapReg(TrapConfig::kTPCT, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getTrapReg(TrapConfig::kTPCT, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "FeeParam::instance()->GetRejectMultipleTracklets(): " << FeeParam::instance()->getRejectMultipleTracklets() << std::endl;
+    fOut << "Parameters relevant for FitTracklet:" << std::endl;
+    fOut << "FeeParam::instance()->GetUseMisalignCorr(): " << FeeParam::instance()->getUseMisalignCorr() << std::endl;
+    fOut << "mTrapConfig->getDmemUnsigned(mgkDmemAddrYcorr, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getDmemUnsigned(mgkDmemAddrYcorr, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getDmemUnsigned(mgkDmemAddrDeflCorr, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getDmemUnsigned(mgkDmemAddrDeflCorr, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getDmemUnsigned(mgkDmemAddrNdrift, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getDmemUnsigned(mgkDmemAddrNdrift, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "FeeParam::instance()->GetUseTimeOffset(): " << FeeParam::instance()->getUseTimeOffset() << std::endl;
+    fOut << "mTrapConfig->getDmemUnsigned(mgkDmemAddrTimeOffset, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getDmemUnsigned(mgkDmemAddrTimeOffset, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getDmemUnsigned(mgkDmemAddrDeflCutStart, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getDmemUnsigned(mgkDmemAddrDeflCutStart, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut << "mTrapConfig->getDmemUnsigned(mgkDmemAddrDeflCutStart + 1, mDetector, mRobPos, mMcmPos): " << mTrapConfig->getDmemUnsigned(mgkDmemAddrDeflCutStart + 1, mDetector, mRobPos, mMcmPos) << std::endl;
+    fOut.close();
+  }
 }
