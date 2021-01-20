@@ -46,6 +46,7 @@ class TRDDPLTrapSimulatorTask : public o2::framework::Task
   void fixTriggerRecords(std::vector<o2::trd::TriggerRecord>& trigRecord); // should be temporary.
   void setTriggerRecord(std::vector<o2::trd::TriggerRecord>& triggerrecord, uint32_t currentrecord, uint64_t recordsize);
   void setTrapSimulatorData(int adc, std::vector<o2::trd::Digit>& digits, int digitposition);
+  void writeADCdata(const TrapSimulator& trapSim);
   // TODO LABELS, o2::dataformats::MCTruthContainer<o2::MCCompLabel>* labels)
 
  private:
@@ -92,6 +93,15 @@ class TRDDPLTrapSimulatorTask : public o2::framework::Task
   void loadTrapConfig();
   void loadDefaultTrapConfig();
   void setOnlineGainTables();
+
+  // OS: debug output analog to aliroot
+  typedef struct {
+    Int_t det, rob, mcm;
+    Int_t adc[630];
+  } Data;
+  Data mData{};
+  TTree* mTreeOut{nullptr};
+  TFile* mFileOut{nullptr};
 };
 
 o2::framework::DataProcessorSpec getTRDTrapSimulatorSpec();

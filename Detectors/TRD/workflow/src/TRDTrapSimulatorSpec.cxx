@@ -196,6 +196,9 @@ void TRDDPLTrapSimulatorTask::init(o2::framework::InitContext& ic)
   mCalib->setCCDBForSimulation(mRunNumber);
   getTrapConfig();
   setOnlineGainTables();
+  mFileOut = new TFile("TRAPsimDump.root", "RECREATE");
+  mTreeOut = new TTree("treeOut", "Filtered ADC data in MCM sim");
+  mTreeOut->Branch("data", &mData, "det/I:rob/I:mcm/I:adc[630]/I");
   LOG(info) << "Trap Simulator Device initialised for config : " << mTrapConfigName;
 }
 
@@ -265,6 +268,19 @@ void TRDDPLTrapSimulatorTask::fixTriggerRecords(std::vector<o2::trd::TriggerReco
   } else {
     LOG(warn) << "TriggerRecord fix requested, but inital TriggerRecord is not 0,0";
   }
+}
+
+void TRDDPLTrapSimulatorTask::writeADCdata(const TrapSimulator& trapSim)
+{
+  mData.det  = trapSim.getDetector();
+  mData.rob = trapSim.getRobPos();
+  mData.mcm = trapSim.getMcmPos();
+  for (int iAdc=0; iAdc<21; ++iAdc) {
+    for (int iTb=0; iTb<30; ++iTb) {
+      mData.adc[30 * iAdc + iTb] = trapSim.getDataFiltered(iAdc, iTb);;
+    }
+  }
+  mTreeOut->Fill();
 }
 
 void TRDDPLTrapSimulatorTask::run(o2::framework::ProcessingContext& pc)
@@ -454,6 +470,8 @@ void TRDDPLTrapSimulatorTask::run(o2::framework::ProcessingContext& pc)
           auto trapsimtimerstart = std::chrono::high_resolution_clock::now();
           mTrapUsedCounter[trapcounter]++;
           numberofusedtraps++;
+          //mTrapSimulator[trapcounter].dumpToFile();
+          writeADCdata(mTrapSimulator[trapcounter]);
           mTrapSimulator[trapcounter].filter();
           mTrapSimulator[trapcounter].tracklet();
 
@@ -575,6 +593,11 @@ void TRDDPLTrapSimulatorTask::run(o2::framework::ProcessingContext& pc)
     oldpad = pad;
     digitcounter++;
   } // end of loop over digits.
+  mFileOut->cd();
+  mTreeOut->Write();
+  delete mTreeOut;
+  mFileOut->Close();
+  delete mFileOut;
 
   // now finalise
   auto triggerrecordstart = trackletTriggerRecords[currentTriggerRecord - 1].getFirstEntry() + trackletTriggerRecords[currentTriggerRecord - 1].getNumberOfObjects();
