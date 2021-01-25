@@ -120,7 +120,7 @@ void convertRun2ToRun3Digits(TString qaOutPath = "",
           }
 
           if (tbsum > 0) {
-            run3Digits.push_back(o2::trd::Digit(det, row, col, adctimes, eventtime));
+            run3Digits.push_back(o2::trd::Digit(det, row, col, adctimes));
           }
 
           hTBsum->Fill(tbsum);
@@ -202,7 +202,7 @@ void convertRun2ToRun3Digits(TString qaOutPath = "",
             }
 
             if (tbsum > 0) {
-              run3Digits.push_back(o2::trd::Digit(det, row, col, adctimes, eventTime));
+              run3Digits.push_back(o2::trd::Digit(det, row, col, adctimes));
             }
 
             if (tbsum > 0) {
