@@ -17,6 +17,8 @@ using namespace GPUCA_NAMESPACE::gpu;
 #include <new>
 #endif
 
+#ifdef GPUCA_ALIROOT_LIB
+
 GPUd() GPUTRDTrackletWord::GPUTRDTrackletWord(unsigned int trackletWord) : mId(-1), mHCId(-1), mTrackletWord(trackletWord)
 {
 }
@@ -63,3 +65,5 @@ GPUd() int GPUTRDTrackletWord::GetdY() const
     return ((mTrackletWord >> 13) & 0x7f);
   }
 }
+
+#endif
