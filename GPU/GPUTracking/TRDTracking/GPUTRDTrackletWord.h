@@ -18,7 +18,7 @@
 
 #include "GPUDef.h"
 
-#ifdef GPUCA_ALIROOT_LIB
+#ifndef GPUCA_TPC_GEOMETRY_O2 // compatibility to Run 2 data types
 
 class AliTRDtrackletWord;
 class AliTRDtrackletMCM;
@@ -77,7 +77,7 @@ class GPUTRDTrackletWord
 } // namespace gpu
 } // namespace GPUCA_NAMESPACE
 
-#elif defined(HAVE_O2HEADERS)
+#else // compatibility with Run 3 data types
 
 #include "DataFormatsTRD/Tracklet64.h"
 
@@ -114,10 +114,6 @@ class GPUTRDTrackletWord : private o2::trd::Tracklet64
 } // namespace gpu
 } // namespace GPUCA_NAMESPACE
 
-#else
-
-#error Cannot build GPU TRD tracking in standalone at the moment
-
-#endif // !GPUCA_ALIROOT_LIB && !defined(HAVE_O2HEADERS)
+#endif // GPUCA_TPC_GEOMETRY_O2
 
 #endif // GPUTRDTRACKLETWORD_H

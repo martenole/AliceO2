@@ -22,7 +22,7 @@ namespace trd
 
 using namespace constants;
 
-float Tracklet64::getUncalibratedY() const
+GPUd() float Tracklet64::getUncalibratedY() const
 {
   int padLocalBin = getPosition();
   int padLocal = 0;
@@ -37,7 +37,7 @@ float Tracklet64::getUncalibratedY() const
   return (offset + padLocal * GRANULARITYTRKLPOS) * padWidth;
 }
 
-float Tracklet64::getUncalibratedDy(float nTbDrift) const
+GPUd() float Tracklet64::getUncalibratedDy(float nTbDrift) const
 {
   float dy;
   int dyLocalBin = getSlope();
