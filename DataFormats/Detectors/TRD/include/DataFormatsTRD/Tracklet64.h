@@ -28,6 +28,7 @@
 
 #include "GPUCommonDef.h"
 #include "GPUCommonRtypes.h"
+#include "GPUStdInt.h"
 
 namespace o2
 {

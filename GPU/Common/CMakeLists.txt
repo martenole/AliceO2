@@ -21,7 +21,8 @@ set(HDRS_INSTALL
     GPUCommonArray.h
     GPUCommonTransform3D.h
     GPUROOTSMatrixFwd.h
-    GPUROOTCartesianFwd.h)
+    GPUROOTCartesianFwd.h
+    GPUStdInt.h)
 
 if(ALIGPU_BUILD_TYPE STREQUAL "O2")
   o2_add_library(${MODULE}
@@ -34,7 +35,7 @@ if(ALIGPU_BUILD_TYPE STREQUAL "O2")
 
   target_compile_definitions(${targetName} PRIVATE GPUCA_O2_LIB
                              GPUCA_TPC_GEOMETRY_O2 HAVE_O2HEADERS)
-  
+
   # cuda test, only compile if CUDA
   if(CUDA_ENABLED)
     o2_add_test(GPUsortCUDA NAME test_GPUsortCUDA
