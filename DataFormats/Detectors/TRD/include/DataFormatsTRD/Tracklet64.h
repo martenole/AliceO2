@@ -48,10 +48,10 @@ class Tracklet64
 
  public:
   GPUdDefault() Tracklet64() = default;
-  GPUd() Tracklet64(uint64_t trackletword) { mtrackletWord = trackletword; }
+  GPUd() Tracklet64(std::uint64_t trackletword) { mtrackletWord = trackletword; }
   GPUdDefault() Tracklet64(const Tracklet64&) = default;
-  GPUd() Tracklet64(uint64_t format, uint64_t hcid, uint64_t padrow, uint64_t col, uint64_t position,
-                    uint64_t slope, uint64_t Q0, uint64_t Q1, uint64_t Q2)
+  GPUd() Tracklet64(std::uint64_t format, std::uint64_t hcid, std::uint64_t padrow, std::uint64_t col, std::uint64_t position,
+                    std::uint64_t slope, std::uint64_t Q0, std::uint64_t Q1, std::uint64_t Q2)
   {
     mtrackletWord = ((format << formatbs) & formatmask) |
                     ((hcid << hcidbs) & hcidmask) |
@@ -68,17 +68,17 @@ class Tracklet64
   GPUdDefault() Tracklet64& operator=(const Tracklet64& rhs) = default;
 
   // ----- Getters for contents of tracklet word -----
-  GPUd() uint64_t getHCID() const { return ((mtrackletWord & hcidmask) >> hcidbs); };       // no units 0..1077
-  GPUd() uint64_t getPadRow() const { return ((mtrackletWord & padrowmask) >> padrowbs); }; // pad row number [0..15]
-  GPUd() uint64_t getColumn() const { return ((mtrackletWord & colmask) >> colbs); };       // column refers to MCM position in column direction on readout board [0..3]
-  GPUd() uint64_t getPosition() const { return ((mtrackletWord & posmask) >> posbs); };     // in units of 1/80 pads, 11 bit granularity [-12.8..12.8] relative to MCM center
-  GPUd() uint64_t getSlope() const { return ((mtrackletWord & slopemask) >> slopebs); };    // in units of 1/1000 pads/timebin, 8 bit granularity [-0.128 to 0.128]
-  GPUd() uint64_t getPID() const { return ((mtrackletWord & PIDmask)); };                   // no unit, all 3 charge windows combined
-  GPUd() uint64_t getQ0() const { return ((mtrackletWord & Q0mask) >> Q0bs); };             // no unit
-  GPUd() uint64_t getQ1() const { return ((mtrackletWord & Q1mask) >> Q1bs); };             // no unit
-  GPUd() uint64_t getQ2() const { return ((mtrackletWord & Q2mask) >> Q2bs); };             // no unit
+  GPUd() std::uint64_t getHCID() const { return ((mtrackletWord & hcidmask) >> hcidbs); };       // no units 0..1077
+  GPUd() std::uint64_t getPadRow() const { return ((mtrackletWord & padrowmask) >> padrowbs); }; // pad row number [0..15]
+  GPUd() std::uint64_t getColumn() const { return ((mtrackletWord & colmask) >> colbs); };       // column refers to MCM position in column direction on readout board [0..3]
+  GPUd() std::uint64_t getPosition() const { return ((mtrackletWord & posmask) >> posbs); };     // in units of 1/80 pads, 11 bit granularity [-12.8..12.8] relative to MCM center
+  GPUd() std::uint64_t getSlope() const { return ((mtrackletWord & slopemask) >> slopebs); };    // in units of 1/1000 pads/timebin, 8 bit granularity [-0.128 to 0.128]
+  GPUd() std::uint64_t getPID() const { return ((mtrackletWord & PIDmask)); };                   // no unit, all 3 charge windows combined
+  GPUd() std::uint64_t getQ0() const { return ((mtrackletWord & Q0mask) >> Q0bs); };             // no unit
+  GPUd() std::uint64_t getQ1() const { return ((mtrackletWord & Q1mask) >> Q1bs); };             // no unit
+  GPUd() std::uint64_t getQ2() const { return ((mtrackletWord & Q2mask) >> Q2bs); };             // no unit
 
-  GPUd() void setTrackletWord(uint64_t trackletword) { mtrackletWord = trackletword; }
+  GPUd() void setTrackletWord(std::uint64_t trackletword) { mtrackletWord = trackletword; }
 
   // ----- Getters for tracklet information -----
   GPUd() int getMCM() const { return 4 * (getPadRow() % 4) + getColumn(); }                                 // returns MCM position on ROB [0..15]
@@ -89,7 +89,7 @@ class Tracklet64
   // ----- Getters for offline corresponding values -----
   GPUd() int getDetector() const { return getHCID() / 2; }
 
-  GPUd() uint64_t getTrackletWord() const { return mtrackletWord; }
+  GPUd() std::uint64_t getTrackletWord() const { return mtrackletWord; }
 
   GPUd() void setQ0(int charge)
   {
@@ -106,18 +106,18 @@ class Tracklet64
     mtrackletWord &= ~Q2mask;
     mtrackletWord |= ((charge << Q2bs) & Q2mask);
   }
-  GPUd() void setPID(uint64_t pid)
+  GPUd() void setPID(std::uint64_t pid)
   {
     // set the entire pid area of the trackletword, all the 3 Q's
     mtrackletWord &= ~PIDmask;
     mtrackletWord |= ((pid << PIDbs) & PIDmask);
   }
-  GPUd() void setPosition(uint64_t position)
+  GPUd() void setPosition(std::uint64_t position)
   {
     mtrackletWord &= ~posmask;
     mtrackletWord |= ((position << posbs) & posmask);
   }
-  GPUd() void setSlope(uint64_t slope)
+  GPUd() void setSlope(std::uint64_t slope)
   {
     mtrackletWord &= ~slopemask;
     mtrackletWord |= ((slope << slopebs) & slopemask);
@@ -128,30 +128,30 @@ class Tracklet64
 #endif // GPUCA_GPUCODE_DEVICE
 
   // bit masks for the above raw data;
-  static constexpr uint64_t formatmask = 0xf000000000000000;
-  static constexpr uint64_t hcidmask = 0x0ffe000000000000;
-  static constexpr uint64_t padrowmask = 0x0001e00000000000;
-  static constexpr uint64_t colmask = 0x0000180000000000;
-  static constexpr uint64_t posmask = 0x000007ff00000000;
-  static constexpr uint64_t slopemask = 0x00000000ff000000;
-  static constexpr uint64_t Q2mask = 0x0000000000ff0000;
-  static constexpr uint64_t Q1mask = 0x000000000000ff00;
-  static constexpr uint64_t Q0mask = 0x00000000000000ff;
-  static constexpr uint64_t PIDmask = 0x0000000000ffffff;
+  static constexpr std::uint64_t formatmask = 0xf000000000000000;
+  static constexpr std::uint64_t hcidmask = 0x0ffe000000000000;
+  static constexpr std::uint64_t padrowmask = 0x0001e00000000000;
+  static constexpr std::uint64_t colmask = 0x0000180000000000;
+  static constexpr std::uint64_t posmask = 0x000007ff00000000;
+  static constexpr std::uint64_t slopemask = 0x00000000ff000000;
+  static constexpr std::uint64_t Q2mask = 0x0000000000ff0000;
+  static constexpr std::uint64_t Q1mask = 0x000000000000ff00;
+  static constexpr std::uint64_t Q0mask = 0x00000000000000ff;
+  static constexpr std::uint64_t PIDmask = 0x0000000000ffffff;
   //bit shifts for the above raw data
-  static constexpr uint64_t formatbs = 60;
-  static constexpr uint64_t hcidbs = 49;
-  static constexpr uint64_t padrowbs = 45;
-  static constexpr uint64_t colbs = 43;
-  static constexpr uint64_t posbs = 32;
-  static constexpr uint64_t slopebs = 24;
-  static constexpr uint64_t PIDbs = 0;
-  static constexpr uint64_t Q2bs = 16;
-  static constexpr uint64_t Q1bs = 8;
-  static constexpr uint64_t Q0bs = 0;
+  static constexpr std::uint64_t formatbs = 60;
+  static constexpr std::uint64_t hcidbs = 49;
+  static constexpr std::uint64_t padrowbs = 45;
+  static constexpr std::uint64_t colbs = 43;
+  static constexpr std::uint64_t posbs = 32;
+  static constexpr std::uint64_t slopebs = 24;
+  static constexpr std::uint64_t PIDbs = 0;
+  static constexpr std::uint64_t Q2bs = 16;
+  static constexpr std::uint64_t Q1bs = 8;
+  static constexpr std::uint64_t Q0bs = 0;
 
  protected:
-  uint64_t mtrackletWord; // the 64 bit word holding all the tracklet information for run3.
+  std::uint64_t mtrackletWord; // the 64 bit word holding all the tracklet information for run3.
  private:
   ClassDefNV(Tracklet64, 1);
 };
