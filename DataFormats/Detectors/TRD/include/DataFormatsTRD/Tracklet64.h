@@ -122,7 +122,9 @@ class Tracklet64
     mtrackletWord |= ((slope << slopebs) & slopemask);
   }
 
+#ifndef GPUCA_GPUCODE_DEVICE
   void printStream(std::ostream& stream) const;
+#endif // GPUCA_GPUCODE_DEVICE
 
   // bit masks for the above raw data;
   static constexpr uint64_t formatmask = 0xf000000000000000;
@@ -153,7 +155,9 @@ class Tracklet64
   ClassDefNV(Tracklet64, 1);
 };
 
+#ifndef GPUCA_GPUCODE_DEVICE
 std::ostream& operator<<(std::ostream& stream, const Tracklet64& trg);
+#endif // GPUCA_GPUCODE_DEVICE
 
 } //namespace trd
 } //namespace o2
