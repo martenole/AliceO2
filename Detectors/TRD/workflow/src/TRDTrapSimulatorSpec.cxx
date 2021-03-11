@@ -142,7 +142,7 @@ void TRDDPLTrapSimulatorTask::setOnlineGainTables()
   }
 }
 
-void TRDDPLTrapSimulatorTask::processTRAPchips(int currDetector, int& nTrackletsInTrigRec, std::vector<Tracklet64>& trapTrackletsAccum, o2::dataformats::MCTruthContainer<o2::MCCompLabel>& lblTracklets, const o2::dataformats::ConstMCTruthContainer<o2::MCCompLabel>* lblDigits)
+void TRDDPLTrapSimulatorTask::processTRAPchips(int currDetector, int& nTrackletsInTrigRec, std::vector<Tracklet64>& trapTrackletsAccum, o2::dataformats::MCTruthContainer<o2::MCCompLabel>& lblTracklets, const o2::dataformats::ConstMCTruthContainer<o2::MCCompLabel>& lblDigits)
 {
   // Loop over all TRAP chips of detector number currDetector.
   // TRAP chips without input data are skipped
@@ -170,13 +170,13 @@ void TRDDPLTrapSimulatorTask::processTRAPchips(int currDetector, int& nTracklets
         for (int iDigitIndex = tmp; iDigitIndex < tmp + digitCountOut[iTrklt]; ++iDigitIndex) {
           if (iDigitIndex == tmp) {
             // for the first digit composing the tracklet we don't need to check for duplicate labels
-            lblTracklets.addElements(trkltIdxStart + iTrklt, lblDigits->getLabels(digitIndicesOut[iDigitIndex]));
+            lblTracklets.addElements(trkltIdxStart + iTrklt, lblDigits.getLabels(digitIndicesOut[iDigitIndex]));
           } else {
             // in case more than one digit composes the tracklet we add only the labels
             // from the additional digit(s) which are not already contained in the previous
             // digit(s)
             auto currentLabels = lblTracklets.getLabels(trkltIdxStart + iTrklt);
-            auto newLabels = lblDigits->getLabels(digitIndicesOut[iDigitIndex]);
+            auto newLabels = lblDigits.getLabels(digitIndicesOut[iDigitIndex]);
             for (const auto& newLabel : newLabels) {
               bool isAlreadyIn = false;
               for (const auto& currLabel : currentLabels) {
@@ -232,14 +232,14 @@ void TRDDPLTrapSimulatorTask::run(o2::framework::ProcessingContext& pc)
 
   const o2::dataformats::ConstMCTruthContainer<o2::MCCompLabel>* lblDigitsPtr = nullptr;
 
-  if (mUseMC) {
+//  if (mUseMC) {
     auto lblDigits = pc.inputs().get<o2::dataformats::ConstMCTruthContainer<o2::MCCompLabel>>("labelinput"); // MC labels associated to the input digits
     lblDigitsPtr = &lblDigits;
     LOG(debug) << "Labels contain " << lblDigitsPtr->getNElements() << " elements with and indexed size of " << lblDigitsPtr->getIndexedSize();
     if (lblDigitsPtr->getIndexedSize() != inputDigits.size()) {
       LOG(warn) << "Digits and Labels coming into TrapSimulator are of differing sizes, labels will be jibberish. " << lblDigitsPtr->getIndexedSize() << "!=" << inputDigits.size();
     }
-  }
+//  }
   LOG(debug) << "Trigger records are available for " << inputTriggerRecords.size() << " collisions";
 
   // output
@@ -273,7 +273,7 @@ void TRDDPLTrapSimulatorTask::run(o2::framework::ProcessingContext& pc)
       }
       if (currDetector != digit->getDetector()) {
         // we switch to a new chamber, process all TRAPs of the previous chamber which contain data
-        processTRAPchips(currDetector, nTrackletsInTrigRec, trapTrackletsAccum, lblTracklets, lblDigitsPtr);
+        processTRAPchips(currDetector, nTrackletsInTrigRec, trapTrackletsAccum, lblTracklets, lblDigits);
         currDetector = digit->getDetector();
       }
       // fill the digit data into the corresponding TRAP chip
@@ -309,7 +309,7 @@ void TRDDPLTrapSimulatorTask::run(o2::framework::ProcessingContext& pc)
       mTrapSimulator[trapIdx].setData(digit->getChannel(), digit->getADC(), digitIndices[iDigit]);
     }
     // take care of the TRAPs for the last chamber
-    processTRAPchips(currDetector, nTrackletsInTrigRec, trapTrackletsAccum, lblTracklets, lblDigitsPtr);
+    processTRAPchips(currDetector, nTrackletsInTrigRec, trapTrackletsAccum, lblTracklets, lblDigits);
     trackletTriggerRecords[iTrig].setDataRange(trapTrackletsAccum.size() - nTrackletsInTrigRec, nTrackletsInTrigRec);
   }
 

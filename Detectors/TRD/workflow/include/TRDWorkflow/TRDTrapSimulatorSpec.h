@@ -58,7 +58,7 @@ class TRDDPLTrapSimulatorTask : public o2::framework::Task
   void loadTrapConfig();
   void loadDefaultTrapConfig();
   void setOnlineGainTables();
-  void processTRAPchips(int currDetector, int& nTrackletsInTrigRec, std::vector<Tracklet64>& trapTrackletsAccum, o2::dataformats::MCTruthContainer<o2::MCCompLabel>& lblTracklets, const o2::dataformats::ConstMCTruthContainer<o2::MCCompLabel>* lblDigits);
+  void processTRAPchips(int currDetector, int& nTrackletsInTrigRec, std::vector<Tracklet64>& trapTrackletsAccum, o2::dataformats::MCTruthContainer<o2::MCCompLabel>& lblTracklets, const o2::dataformats::ConstMCTruthContainer<o2::MCCompLabel>& lblDigits);
 };
 
 o2::framework::DataProcessorSpec getTRDTrapSimulatorSpec(bool useMC);
