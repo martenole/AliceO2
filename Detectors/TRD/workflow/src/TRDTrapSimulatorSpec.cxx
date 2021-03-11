@@ -232,14 +232,14 @@ void TRDDPLTrapSimulatorTask::run(o2::framework::ProcessingContext& pc)
 
   const o2::dataformats::ConstMCTruthContainer<o2::MCCompLabel>* lblDigitsPtr = nullptr;
 
-//  if (mUseMC) {
-    auto lblDigits = pc.inputs().get<o2::dataformats::ConstMCTruthContainer<o2::MCCompLabel>>("labelinput"); // MC labels associated to the input digits
-    lblDigitsPtr = &lblDigits;
-    LOG(debug) << "Labels contain " << lblDigitsPtr->getNElements() << " elements with and indexed size of " << lblDigitsPtr->getIndexedSize();
-    if (lblDigitsPtr->getIndexedSize() != inputDigits.size()) {
-      LOG(warn) << "Digits and Labels coming into TrapSimulator are of differing sizes, labels will be jibberish. " << lblDigitsPtr->getIndexedSize() << "!=" << inputDigits.size();
-    }
-//  }
+  //  if (mUseMC) {
+  auto lblDigits = pc.inputs().get<o2::dataformats::ConstMCTruthContainer<o2::MCCompLabel>>("labelinput"); // MC labels associated to the input digits
+  lblDigitsPtr = &lblDigits;
+  LOG(debug) << "Labels contain " << lblDigitsPtr->getNElements() << " elements with and indexed size of " << lblDigitsPtr->getIndexedSize();
+  if (lblDigitsPtr->getIndexedSize() != inputDigits.size()) {
+    LOG(warn) << "Digits and Labels coming into TrapSimulator are of differing sizes, labels will be jibberish. " << lblDigitsPtr->getIndexedSize() << "!=" << inputDigits.size();
+  }
+  //  }
   LOG(debug) << "Trigger records are available for " << inputTriggerRecords.size() << " collisions";
 
   // output
