@@ -68,6 +68,7 @@ void TRDGlobalTracking::init(InitContext& ic)
   mTracker->SetProcessPerTimeFrame();
   mTracker->SetNMaxCollisions(mRec->GetProcessingSettings().trdNMaxCollisions);
   mTracker->SetTrkltTransformNeeded(!mUseTrackletTransform);
+  mTracker->SetDoImpactAngleHistograms(true);
 
   mRec->RegisterGPUProcessor(mTracker, false);
   mChainTracking->SetTRDGeometry(std::move(mFlatGeo));
