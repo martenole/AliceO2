@@ -172,6 +172,7 @@ void TRDGlobalTracking::run(ProcessingContext& pc)
   mTracker->SetTriggerRecordIndices(&(trdTriggerIndices[0]));
   mTracker->SetNCollisions(nCollisions);
   //mTracker->DumpTracks();
+  mTracker->ResetImpactAngleHistograms();
   mTracker->DoTracking(mChainTracking);
   //mTracker->DumpTracks();
 

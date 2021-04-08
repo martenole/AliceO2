@@ -618,6 +618,14 @@ GPUd() bool GPUTRDTracker_t<TRDTRK, PROP>::CalculateSpacePoints(int iCollision)
   }
   return result;
 }
+template <class TRDTRK, class PROP>
+GPUd() void GPUTRDTracker_t<TRDTRK, PROP>::ResetImpactAngleHistograms(){
+  for(int i = 0; i < kNChambers * (mNAngleHistogramBins + 1); i++){
+    mAngleDiffvsImpactAngleGlobal[i].mAngleDiffSum = 0;
+    mAngleDiffvsImpactAngleGlobal[i].mTrackletCounter = 0;    
+  }
+
+}
 
 template <class TRDTRK, class PROP>
 GPUd() void GPUTRDTracker_t<TRDTRK, PROP>::DoImpactAngleHistograms(PROP* prop, TRDTRK* t)
@@ -630,43 +638,41 @@ GPUd() void GPUTRDTracker_t<TRDTRK, PROP>::DoImpactAngleHistograms(PROP* prop, T
   t->SetChi2(0.f);
   t->resetCovariance(100);
 
-  auto trkWork = t;
-
   //mSpacePoints[t->GetTracklet(iLy)].mLabel[il]
   printf("===========================================================\n");
 
   printf("Print Radius of Tracklets for track %d with %d tracklets:\n", iTrack, t->GetNtracklets());
   for (int iLayer = kNLayers - 1; iLayer >= 0; --iLayer) {
-    if (trkWork->GetTracklet(iLayer) == -1)
+    if (t->GetTracklet(iLayer) == -1)
       continue;
     printf("%d:%f, ", iLayer, mSpacePoints[t->GetTracklet(iLayer)].mR);
   }
   printf("\n");
-  for (int iLayer = kNLayers - 2; iLayer >= 0; --iLayer) {
-    if (trkWork->GetTracklet(iLayer) == -1)
+  for (int iLayer = kNLayers - 1; iLayer >= 0; --iLayer) {
+    if (t->GetTracklet(iLayer) == -1)
       continue;
-    if (PropagateAndUpdateLayer(prop, trkWork, iLayer))
+    if (PropagateAndUpdateLayer(prop, t, iLayer))
       return;
   }
   printf("\n===========================================================\n");
   for (int iLayer = 1; iLayer < kNLayers; ++iLayer) {
-    if (trkWork->GetTracklet(iLayer) == -1)
+    if (t->GetTracklet(iLayer) == -1)
       continue;
-    if (PropagateAndUpdateLayer(prop, trkWork, iLayer))
+    if (PropagateAndUpdateLayer(prop, t, iLayer))
       return;
   }
   printf("\n===========================================================\n");
   for (int iLayer = kNLayers - 1; iLayer >= 0; --iLayer) {
-    if (trkWork->GetTracklet(iLayer) == -1)
+    if (t->GetTracklet(iLayer) == -1)
       continue;
-    if (PropagateAndUpdateLayer(prop, trkWork, iLayer))
+    if (PropagateAndUpdateLayer(prop, t, iLayer))
       return;
 
-    float impactAngle = CAMath::ASin(trkWork->getSnp()) * 180.f / M_PI;
+    float impactAngle = CAMath::ASin(t->getSnp()) * 180.f / M_PI;
     float trackletAngle = CAMath::ATan(mSpacePoints[t->GetTracklet(iLayer)].mDy / 3) * 180.f / M_PI;
     float anglediff = trackletAngle - impactAngle;
 
-    short detIndexOffset = mTracklets[trkWork->GetTracklet(iLayer)].GetDetector() * (mNAngleHistogramBins + 1);
+    short detIndexOffset = mTracklets[t->GetTracklet(iLayer)].GetDetector() * (mNAngleHistogramBins + 1);
     short index = (short)((impactAngle + 0.5 * mAngleHistogramRange) * invBinWidth);
 
     if (impactAngle <= -0.5 * mAngleHistogramRange || impactAngle >= 0.5 * mAngleHistogramRange) {
@@ -675,7 +681,7 @@ GPUd() void GPUTRDTracker_t<TRDTRK, PROP>::DoImpactAngleHistograms(PROP* prop, T
     mAngleDiffvsImpactAngleGlobal[index + detIndexOffset].mAngleDiffSum += anglediff;
     mAngleDiffvsImpactAngleGlobal[index + detIndexOffset].mTrackletCounter++;
 
-    printf("Anglediffindex %d,impact %f,counter %d,angular sum%f\n", detIndexOffset, impactAngle, mAngleDiffvsImpactAngleGlobal[index + detIndexOffset].mTrackletCounter, mAngleDiffvsImpactAngleGlobal[index + detIndexOffset].mAngleDiffSum);
+    printf("Anglediffindex %d,impact %f, tracklet %f, counter %d,angular sum%f\n", detIndexOffset, impactAngle, trackletAngle, mAngleDiffvsImpactAngleGlobal[index + detIndexOffset].mTrackletCounter, mAngleDiffvsImpactAngleGlobal[index + detIndexOffset].mAngleDiffSum);
   }
   printf("\n===========================================================\n");
 }
@@ -691,6 +697,16 @@ GPUd() bool GPUTRDTracker_t<TRDTRK, PROP>::PropagateAndUpdateLayer(PROP* prop, T
   float tilt = CAMath::Tan(M_PI / 180.f * pad->GetTiltingAngle()); // tilt is signed!
 
   prop->setTrack(trkWork);
+
+  if (mTracklets[trkWork->GetTracklet(iLayer)].GetDetector()/30 != GetSector(prop->getAlpha())) {
+    if (!prop->rotate(GetAlphaOfSector(mTracklets[trkWork->GetTracklet(iLayer)].GetDetector()/30))) {
+      if (ENABLE_WARNING) {
+        Warning("PropagateAndUpdateLayer", "Track could not be rotated in tracklet coordinate system");
+      }
+      return true;
+    }
+  }
+
 
   if (!prop->propagateToX(mSpacePoints[trackletID].mR, .8f, 2.f)) {
     GPUInfo("Track propagation failed for track %i candidate %i in layer %i (pt=%f, x=%f, mR[layer]=%f)", iTrack, trkWork->GetTracklet(iLayer), iLayer, trkWork->getPt(), trkWork->getX(), mR[2 * kNLayers + iLayer]);

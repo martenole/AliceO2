@@ -111,6 +111,7 @@ class GPUTRDTracker_t : public GPUProcessor
   GPUd() bool CalculateSpacePoints(int iCollision = 0);
   GPUd() bool FollowProlongation(PROP* prop, TRDTRK* t, int threadId, int collisionId);
   GPUd() void DoImpactAngleHistograms(PROP* prop, TRDTRK* t);
+  GPUd() void ResetImpactAngleHistograms();
   GPUd() bool PropagateAndUpdateLayer(PROP* prop, TRDTRK* trkWork, int iLayer);
   GPUd() int GetDetectorNumber(const float zPos, const float alpha, const int layer) const;
   GPUd() bool AdjustSector(PROP* prop, TRDTRK* t) const;
