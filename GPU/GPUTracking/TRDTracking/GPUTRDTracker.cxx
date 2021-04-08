@@ -619,12 +619,12 @@ GPUd() bool GPUTRDTracker_t<TRDTRK, PROP>::CalculateSpacePoints(int iCollision)
   return result;
 }
 template <class TRDTRK, class PROP>
-GPUd() void GPUTRDTracker_t<TRDTRK, PROP>::ResetImpactAngleHistograms(){
-  for(int i = 0; i < kNChambers * (mNAngleHistogramBins + 1); i++){
+GPUd() void GPUTRDTracker_t<TRDTRK, PROP>::ResetImpactAngleHistograms()
+{
+  for (int i = 0; i < kNChambers * (mNAngleHistogramBins + 1); i++) {
     mAngleDiffvsImpactAngleGlobal[i].mAngleDiffSum = 0;
-    mAngleDiffvsImpactAngleGlobal[i].mTrackletCounter = 0;    
+    mAngleDiffvsImpactAngleGlobal[i].mTrackletCounter = 0;
   }
-
 }
 
 template <class TRDTRK, class PROP>
@@ -698,15 +698,14 @@ GPUd() bool GPUTRDTracker_t<TRDTRK, PROP>::PropagateAndUpdateLayer(PROP* prop, T
 
   prop->setTrack(trkWork);
 
-  if (mTracklets[trkWork->GetTracklet(iLayer)].GetDetector()/30 != GetSector(prop->getAlpha())) {
-    if (!prop->rotate(GetAlphaOfSector(mTracklets[trkWork->GetTracklet(iLayer)].GetDetector()/30))) {
+  if (mTracklets[trkWork->GetTracklet(iLayer)].GetDetector() / 30 != GetSector(prop->getAlpha())) {
+    if (!prop->rotate(GetAlphaOfSector(mTracklets[trkWork->GetTracklet(iLayer)].GetDetector() / 30))) {
       if (ENABLE_WARNING) {
         Warning("PropagateAndUpdateLayer", "Track could not be rotated in tracklet coordinate system");
       }
       return true;
     }
   }
-
 
   if (!prop->propagateToX(mSpacePoints[trackletID].mR, .8f, 2.f)) {
     GPUInfo("Track propagation failed for track %i candidate %i in layer %i (pt=%f, x=%f, mR[layer]=%f)", iTrack, trkWork->GetTracklet(iLayer), iLayer, trkWork->getPt(), trkWork->getX(), mR[2 * kNLayers + iLayer]);
