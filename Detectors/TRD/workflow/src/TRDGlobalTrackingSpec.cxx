@@ -11,9 +11,7 @@
 /// @file   TRDGlobalTrackingSpec.cxx
 
 #include "TRDWorkflow/TRDGlobalTrackingSpec.h"
-
 #include "TRDBase/Geometry.h"
-
 #include "DetectorsCommonDataFormats/NameConf.h"
 #include "CommonConstants/LHCConstants.h"
 #include "DetectorsBase/GeometryManager.h"
@@ -26,6 +24,7 @@
 #include "TPCBase/ParameterElectronics.h"
 #include "TPCBase/ParameterGas.h"
 #include "DataFormatsGlobalTracking/RecoContainer.h"
+#include "TRDReconstruction/RecoInputContainer.h"
 
 // GPU header
 #include "GPUReconstruction.h"
@@ -104,18 +103,19 @@ void TRDGlobalTracking::updateTimeDependentParams()
 void TRDGlobalTracking::run(ProcessingContext& pc)
 {
   mTimer.Start(false);
+  auto tmpInputContainer = getRecoInputContainer(mChainTracking->mIOPtrs);
   o2::globaltracking::RecoContainer inputTracks;
   inputTracks.collectData(pc, dataRequestTRD);
-  const auto tracksITSTPC = inputTracks.getTPCITSTracks<o2::dataformats::TrackTPCITS>();
-  const auto tracksTPC = inputTracks.getTPCTracks<o2::tpc::TrackTPC>();
-  const auto trackletsTRD = pc.inputs().get<gsl::span<o2::trd::Tracklet64>>("trdtracklets");
-  const auto triggerRecords = pc.inputs().get<gsl::span<o2::trd::TriggerRecord>>("trdtriggerrec");
+  tmpInputContainer->mTracksTPCITS = inputTracks.getTPCITSTracks<o2::dataformats::TrackTPCITS>();
+  tmpInputContainer->mTracksTPC = inputTracks.getTPCTracks<o2::tpc::TrackTPC>();
+  tmpInputContainer->mTracklets = pc.inputs().get<gsl::span<o2::trd::Tracklet64>>("trdtracklets");
+  tmpInputContainer->mTriggerRecords = pc.inputs().get<gsl::span<o2::trd::TriggerRecord>>("trdtriggerrec");
 
-  int nTracksITSTPC = tracksITSTPC.size();
-  int nTracksTPC = tracksTPC.size();
-  int nCollisions = triggerRecords.size();
-  int nTracklets = trackletsTRD.size();
-  LOGF(INFO, "There are %i tracklets in total from %i trigger records", nTracklets, nCollisions);
+  int nTracksITSTPC = tmpInputContainer->mTracksTPCITS.size();
+  int nTracksTPC = tmpInputContainer->mTracksTPC.size();
+  int nTriggerRecords = tmpInputContainer->mTriggerRecords.size();
+  int nTracklets = tmpInputContainer->mTracklets.size();
+  LOGF(INFO, "There are %i tracklets in total from %i trigger records", nTracklets, nTriggerRecords);
   LOGF(INFO, "As input seeds are available: %i ITS-TPC matched tracks and %i TPC tracks", nTracksITSTPC, nTracksTPC);
 
   const gsl::span<const CalibratedTracklet>* cTrkltsPtr = nullptr;
@@ -136,12 +136,8 @@ void TRDGlobalTracking::run(ProcessingContext& pc)
   std::vector<float> trdTriggerTimes;
   std::vector<int> trdTriggerIndices;
 
-  for (int iEv = 0; iEv < nCollisions; ++iEv) {
-#ifdef MS_GSL_V3
-    const auto& trg = triggerRecords[iEv];
-#else
-    const auto& trg = triggerRecords.at(iEv);
-#endif
+  for (int iEv = 0; iEv < nTriggerRecords; ++iEv) {
+    const auto& trg = tmpInputContainer->mTriggerRecords[iEv];
     int nTrackletsCurrent = trg.getNumberOfTracklets();
     int iFirstTracklet = trg.getFirstTracklet();
     int64_t evTime = trg.getBCData().toLong() * o2::constants::lhc::LHCBunchSpacingNS; // event time in ns
@@ -158,8 +154,12 @@ void TRDGlobalTracking::run(ProcessingContext& pc)
   // => the maximum number of seeds it the number of TPC-only tracks. If only ITS-TPC matches are considered than that
   //    of course defines the number of input tracks
   mChainTracking->mIOPtrs.nMergedTracks = (nTracksTPC == 0) ? nTracksITSTPC : nTracksTPC;
-  mChainTracking->mIOPtrs.nTRDTracklets = nTracklets;
   mChainTracking->AllocateIOMemory();
+  mChainTracking->mIOPtrs.nTRDTriggerRecords = nTriggerRecords;
+  mChainTracking->mIOPtrs.trdTriggerTimes = &(trdTriggerTimes[0]);
+  mChainTracking->mIOPtrs.trdTrackletIdxFirst = &(trdTriggerIndices[0]);
+  mChainTracking->mIOPtrs.nTRDTracklets = nTracklets;
+  mChainTracking->mIOPtrs.trdTracklets = reinterpret_cast<const o2::gpu::GPUTRDTrackletWord*>(tmpInputContainer->mTracklets.data());
   mRec->PrepareEvent();
   mRec->SetupGPUProcessor(mTracker, true);
 
@@ -170,7 +170,7 @@ void TRDGlobalTracking::run(ProcessingContext& pc)
   std::vector<int> loadedTPCtracks;
 
   // load ITS-TPC matched tracks
-  for (const auto& match : tracksITSTPC) {
+  for (const auto& match : tmpInputContainer->mTracksTPCITS) {
     GPUTRDTrack trkLoad(match, mTPCVdrift);
     if (mTracker->LoadTrack(trkLoad)) {
       continue;
@@ -181,12 +181,12 @@ void TRDGlobalTracking::run(ProcessingContext& pc)
   }
 
   // load TPC-only tracks
-  for (int iTrk = 0; iTrk < tracksTPC.size(); ++iTrk) {
+  for (int iTrk = 0; iTrk < nTracksTPC; ++iTrk) {
     if (std::find(loadedTPCtracks.begin(), loadedTPCtracks.end(), iTrk) != loadedTPCtracks.end()) {
       // this TPC tracks has already been matched to ITS and the ITS-TPC track has already been loaded in the tracker
       continue;
     }
-    const auto& trkTpc = tracksTPC[iTrk];
+    const auto& trkTpc = tmpInputContainer->mTracksTPC[iTrk];
     GPUTRDTrack trkLoad(trkTpc, mTPCTBinMUS, mTPCVdrift, iTrk);
     if (mTracker->LoadTrack(trkLoad)) {
       continue;
@@ -197,25 +197,18 @@ void TRDGlobalTracking::run(ProcessingContext& pc)
   LOGF(INFO, "%i tracks are loaded into the TRD tracker. Out of those %i ITS-TPC tracks and %i TPC tracks", nTracksLoadedITSTPC + nTracksLoadedTPC, nTracksLoadedITSTPC, nTracksLoadedTPC);
 
   // load the TRD tracklets
-  for (int iTrklt = 0; iTrklt < nTracklets; ++iTrklt) {
-    auto trklt = trackletsTRD[iTrklt];
-    GPUTRDTrackletWord trkltLoad(trklt.getTrackletWord());
-    if (mTracker->LoadTracklet(trkltLoad) > 0) {
-      LOG(WARNING) << "Could not load tracklet " << iTrklt;
-    }
-    if (mUseTrackletTransform) {
+  if (mUseTrackletTransform) {
+    // TODO add space point to GPU Data Types and load them all in one go same as Tracklet64s
+    for (int iTrklt = 0; iTrklt < nTracklets; ++iTrklt) {
       const CalibratedTracklet cTrklt = (cTrkltsPtr->data())[iTrklt];
       mTracker->SetInternalSpacePoint(iTrklt, cTrklt.getX(), cTrklt.getY(), cTrklt.getZ(), cTrklt.getDy());
     }
   }
 
-  mTracker->SetTriggerRecordTimes(&(trdTriggerTimes[0]));
-  mTracker->SetTriggerRecordIndices(&(trdTriggerIndices[0]));
-  mTracker->SetNCollisions(nCollisions);
   //mTracker->DumpTracks();
   mTracker->ResetImpactAngleHistograms();
   mTracker->DoTracking(mChainTracking);
-  //mTracker->DumpTracks();
+  mTracker->DumpTracks();
 
   std::vector<GPUTRDTrack> tracksOutITSTPC(nTracksLoadedITSTPC);
   std::vector<GPUTRDTrack> tracksOutTPC(nTracksLoadedTPC);

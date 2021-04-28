@@ -363,7 +363,18 @@ int GPUTRDTrackerComponent::DoEvent(const AliHLTComponentEventData& evtData, con
   fRec->PrepareEvent();
   fRec->SetupGPUProcessor(fTracker, true);
 
-  // loop over all tracklets
+  /*
+  std::vector<GPUTRDTrackletWord> trackletsVec(nTrackletsTotal);
+  for (int i=0; i<nTrackletsTotal; ++i) {
+    trackletsVec[i] = *tracklets[i];
+  }
+  */
+  // TODO sort tracklets by HCId before using them
+  // TODO set nMaxCollisions
+  fChain->mIOPtrs.trdTracklets = tracklets;
+
+  // loop over all tracklet
+  /*
   for (int iTracklet = 0; iTracklet < nTrackletsTotal; ++iTracklet) {
     if (!hasMCtracklets) {
       if (fTracker->LoadTracklet(tracklets[iTracklet])) {
@@ -375,6 +386,7 @@ int GPUTRDTrackerComponent::DoEvent(const AliHLTComponentEventData& evtData, con
       }
     }
   }
+  */
   // loop over all tracks
   for (unsigned int iTrack = 0; iTrack < tracksTPC.size(); ++iTrack) {
     fTracker->LoadTrack(tracksTPC[iTrack], tracksTPCLab[iTrack]);
