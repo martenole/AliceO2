@@ -208,7 +208,7 @@ void TRDGlobalTracking::run(ProcessingContext& pc)
   //mTracker->DumpTracks();
   mTracker->ResetImpactAngleHistograms();
   mTracker->DoTracking(mChainTracking);
-  mTracker->DumpTracks();
+  //mTracker->DumpTracks();
 
   std::vector<GPUTRDTrack> tracksOutITSTPC(nTracksLoadedITSTPC);
   std::vector<GPUTRDTrack> tracksOutTPC(nTracksLoadedTPC);

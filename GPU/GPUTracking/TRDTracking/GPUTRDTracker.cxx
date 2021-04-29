@@ -492,7 +492,7 @@ GPUd() void GPUTRDTracker_t<TRDTRK, PROP>::DumpTracks()
   // helper function (only for debugging purposes)
   //--------------------------------------------------------------------
   GPUInfo("There are in total %i tracklets loaded", GetConstantMem()->ioPtrs.nTRDTracklets);
-  GPUInfo("There are %i tracks loaded. mNMaxTracks(%i)\n", mNTracks, mNMaxTracks);
+  GPUInfo("There are %i tracks loaded. mNMaxTracks(%i)", mNTracks, mNMaxTracks);
   for (int i = 0; i < mNTracks; ++i) {
     auto* trk = &(mTracks[i]);
     GPUInfo("track %i: x=%f, alpha=%f, nTracklets=%i, pt=%f, time=%f", i, trk->getX(), trk->getAlpha(), trk->GetNtracklets(), trk->getPt(), trk->getTime());
@@ -774,7 +774,7 @@ GPUd() bool GPUTRDTracker_t<TRDTRK, PROP>::FollowProlongation(PROP* prop, TRDTRK
   // -> returns false if prolongation could not be executed fully
   //    or track does not fullfill threshold conditions
   //--------------------------------------------------------------------
-  GPUInfo("Start track following for track %i at x=%f with pt=%f", t->GetTPCtrackId(), t->getX(), t->getPt());
+  //GPUInfo("Start track following for track %i at x=%f with pt=%f", t->GetTPCtrackId(), t->getX(), t->getPt());
   mDebug->Reset();
   int iTrack = t->GetTPCtrackId();
   t->SetChi2(0.f);
