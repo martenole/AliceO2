@@ -108,7 +108,7 @@ class GPUTRDTracker_t : public GPUProcessor
   GPUd() int GetCollisionIDs(TRDTRK& trk, int* collisionIds) const;
   GPUd() void DoTrackingThread(int iTrk, int threadId = 0);
   static GPUd() bool ConvertTrkltToSpacePoint(const GPUTRDGeometry& geo, GPUTRDTrackletWord& trklt, GPUTRDSpacePoint& sp);
-  //GPUd() bool CalculateSpacePoints(int iCollision = 0);
+  GPUd() bool CalculateSpacePoints(int iCollision = 0);
   GPUd() bool FollowProlongation(PROP* prop, TRDTRK* t, int threadId, int collisionId);
   GPUd() int FillImpactAngleHistograms(PROP* prop, TRDTRK* t);
   GPUd() void ResetImpactAngleHistograms();
@@ -129,6 +129,7 @@ class GPUTRDTracker_t : public GPUProcessor
 
 
   // settings
+  GPUd() void SetGenerateSpacePoints() { mGenerateSpacePoints = true; }
   GPUd() void SetProcessPerTimeFrame() { mProcessPerTimeFrame = true; }
   GPUd() void SetDoImpactAngleHistograms(bool flag) { mDoImpactAngleHistograms = flag; }
   GPUd() void SetMCEvent(AliMCEvent* mc) { mMCEvent = mc; }
@@ -147,6 +148,7 @@ class GPUTRDTracker_t : public GPUProcessor
 
   // output
   GPUd() int NTracks() const { return mNTracks; }
+  GPUd() GPUTRDSpacePoint* SpacePoints() const { return mSpacePoints; }
   GPUd() TRDTRK* Tracks() const { return mTracks; }
   GPUd() float* AngleDiffSums() const { return mAngleDiffSums; }
   GPUd() short* AngleDiffCounters() const { return mAngleDiffCounters; }
@@ -155,6 +157,7 @@ class GPUTRDTracker_t : public GPUProcessor
  protected:
   float* mR;                               // radial position of each TRD chamber, alignment taken into account, radial spread within chambers < 7mm
   bool mIsInitialized;                     // flag is set upon initialization
+  bool mGenerateSpacePoints;               // if true, only tracklets are provided as input and they will be converted into space points by the tracker
   bool mProcessPerTimeFrame;               // if true, tracking is done per time frame instead of on a single events basis
   bool mDoImpactAngleHistograms;           // if true, impact angle vs angle difference histograms are filled
   short mNAngleHistogramBins;              // number of bins per chamber for the angular difference histograms
@@ -176,6 +179,7 @@ class GPUTRDTracker_t : public GPUProcessor
   int* mTrackletIndexArray;
   Hypothesis* mHypothesis;                 // array with multiple track hypothesis
   TRDTRK* mCandidates;                     // array of tracks for multiple hypothesis tracking
+  GPUTRDSpacePoint* mSpacePoints;          // array with tracklet coordinates in global tracking frame
   float* mAngleDiffSums;                   // array with sum of angular differences for a given bin
   short* mAngleDiffCounters;               // array with number of entries for a given bin
   int* mTrackletLabels;                    // array with MC tracklet labels

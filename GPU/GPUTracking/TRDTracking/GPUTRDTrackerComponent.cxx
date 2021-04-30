@@ -359,34 +359,16 @@ int GPUTRDTrackerComponent::DoEvent(const AliHLTComponentEventData& evtData, con
   fTracker->Reset();
   fChain->mIOPtrs.nMergedTracks = tracksTPC.size();
   fChain->mIOPtrs.nTRDTracklets = nTrackletsTotal;
-  fChain->AllocateIOMemory();
+  fChain->mIOPtrs.nTRDTriggerRecords = 1;
+  //fChain->AllocateIOMemory();
   fRec->PrepareEvent();
   fRec->SetupGPUProcessor(fTracker, true);
 
-  /*
-  std::vector<GPUTRDTrackletWord> trackletsVec(nTrackletsTotal);
-  for (int i=0; i<nTrackletsTotal; ++i) {
-    trackletsVec[i] = *tracklets[i];
-  }
-  */
-  // TODO sort tracklets by HCId before using them
-  // TODO set nMaxCollisions
+
+  std::sort(tracklets, tracklets + nTrackletsTotal);
   fChain->mIOPtrs.trdTracklets = tracklets;
 
-  // loop over all tracklet
-  /*
-  for (int iTracklet = 0; iTracklet < nTrackletsTotal; ++iTracklet) {
-    if (!hasMCtracklets) {
-      if (fTracker->LoadTracklet(tracklets[iTracklet])) {
-        return -EINVAL;
-      }
-    } else {
-      if (fTracker->LoadTracklet(tracklets[iTracklet], trackletsMC[iTracklet].mLabel)) {
-        return -EINVAL;
-      }
-    }
-  }
-  */
+
   // loop over all tracks
   for (unsigned int iTrack = 0; iTrack < tracksTPC.size(); ++iTrack) {
     fTracker->LoadTrack(tracksTPC[iTrack], tracksTPCLab[iTrack]);
@@ -472,10 +454,10 @@ int GPUTRDTrackerComponent::DoEvent(const AliHLTComponentEventData& evtData, con
     for (int i = 0; i < nTrackletsTotal; ++i) {
       const GPUTRDTrackerGPU::GPUTRDSpacePointInternal& sp = spacePoints[i];
       GPUTRDTrackPoint* currOutPoint = &outTrackPoints->fPoints[i];
-      currOutPoint->fX[0] = sp.mR;    // x in sector coordinates
-      currOutPoint->fX[1] = sp.mX[0]; // y in sector coordinates
-      currOutPoint->fX[2] = sp.mX[1]; // z in sector coordinates
-      currOutPoint->fVolumeId = sp.mVolumeId;
+      currOutPoint->fX[0] = sp.getX();    // x in sector coordinates
+      currOutPoint->fX[1] = sp.getY(); // y in sector coordinates
+      currOutPoint->fX[2] = sp.getZ(); // z in sector coordinates
+      currOutPoint->fVolumeId = -1;
     }
     AliHLTComponentBlockData resultDataSP;
     FillBlockData(resultDataSP);

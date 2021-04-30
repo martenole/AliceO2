@@ -87,6 +87,9 @@ void* GPUTRDTracker_t<TRDTRK, PROP>::SetPointersTracklets(void* base)
   // Allocate memory for tracklets and space points
   // (size might change for different events)
   //--------------------------------------------------------------------
+  if (mGenerateSpacePoints) {
+    computePointerWithAlignment(base, mSpacePoints, mNMaxSpacePoints);
+  }
   computePointerWithAlignment(base, mTrackletIndexArray, (kNChambers + 1) * mNMaxCollisions);
   computePointerWithAlignment(base, mTrackletLabels, 3 * mNMaxSpacePoints * mNMaxCollisions);
   return base;
@@ -103,7 +106,7 @@ void* GPUTRDTracker_t<TRDTRK, PROP>::SetPointersTracks(void* base)
 }
 
 template <class TRDTRK, class PROP>
-GPUTRDTracker_t<TRDTRK, PROP>::GPUTRDTracker_t() : mR(nullptr), mIsInitialized(false), mProcessPerTimeFrame(false), mDoImpactAngleHistograms(false), mNAngleHistogramBins(25), mAngleHistogramRange(50), mMemoryPermanent(-1), mMemoryTracklets(-1), mMemoryTracks(-1), mNMaxCollisions(0), mNMaxTracks(0), mNMaxSpacePoints(0), mTracks(nullptr), mNCandidates(1), mNTracks(0), mNEvents(0), mMaxThreads(100), mTrackletIndexArray(nullptr), mHypothesis(nullptr), mCandidates(nullptr), mAngleDiffSums(nullptr), mAngleDiffCounters(nullptr), mTrackletLabels(nullptr), mGeo(nullptr), mRPhiA2(0), mRPhiB(0), mRPhiC2(0), mDyA2(0), mDyB(0), mDyC2(0), mAngleToDyA(0), mAngleToDyB(0), mAngleToDyC(0), mDebugOutput(false), mMaxEta(0.84f), mExtraRoadY(2.f), mRoadZ(18.f), mZCorrCoefNRC(1.4f), mTPCVdrift(2.58f), mMCEvent(nullptr), mDebug(new GPUTRDTrackerDebug<TRDTRK>())
+GPUTRDTracker_t<TRDTRK, PROP>::GPUTRDTracker_t() : mR(nullptr), mIsInitialized(false), mGenerateSpacePoints(false), mProcessPerTimeFrame(false), mDoImpactAngleHistograms(false), mNAngleHistogramBins(25), mAngleHistogramRange(50), mMemoryPermanent(-1), mMemoryTracklets(-1), mMemoryTracks(-1), mNMaxCollisions(0), mNMaxTracks(0), mNMaxSpacePoints(0), mTracks(nullptr), mNCandidates(1), mNTracks(0), mNEvents(0), mMaxThreads(100), mTrackletIndexArray(nullptr), mHypothesis(nullptr), mCandidates(nullptr), mSpacePoints(nullptr), mAngleDiffSums(nullptr), mAngleDiffCounters(nullptr), mTrackletLabels(nullptr), mGeo(nullptr), mRPhiA2(0), mRPhiB(0), mRPhiC2(0), mDyA2(0), mDyB(0), mDyC2(0), mAngleToDyA(0), mAngleToDyB(0), mAngleToDyC(0), mDebugOutput(false), mMaxEta(0.84f), mExtraRoadY(2.f), mRoadZ(18.f), mZCorrCoefNRC(1.4f), mTPCVdrift(2.58f), mMCEvent(nullptr), mDebug(new GPUTRDTrackerDebug<TRDTRK>())
 {
   //--------------------------------------------------------------------
   // Default constructor
@@ -205,7 +208,7 @@ void GPUTRDTracker_t<TRDTRK, PROP>::DoTracking(GPUChainTracking* chainTracking)
   //--------------------------------------------------------------------
 
   // fill tracklet index array (tracklets are already sorted)
-  for (int iColl = 0; iColl < GetConstantMem()->ioPtrs.nTRDTriggerRecords; ++iColl) {
+  for (unsigned int iColl = 0; iColl < GetConstantMem()->ioPtrs.nTRDTriggerRecords; ++iColl) {
     int nTrklts = 0;
     int idxOffset = 0;
     if (mProcessPerTimeFrame) {
@@ -233,6 +236,15 @@ void GPUTRDTracker_t<TRDTRK, PROP>::DoTracking(GPUChainTracking* chainTracking)
     for (int iDet = currDet; iDet <= kNChambers; ++iDet) {
       trkltIndexArray[iDet] = trkltCounter;
     }
+    if (mGenerateSpacePoints) {
+      if (!CalculateSpacePoints(iColl)) {
+        GPUError("Space points for at least one chamber could not be calculated (for interaction %i)", iColl);
+        break;
+      }
+    }
+  }
+  if (mGenerateSpacePoints) {
+    chainTracking->mIOPtrs.trdSpacePoints = mSpacePoints;
   }
 
   auto timeStart = std::chrono::high_resolution_clock::now();
@@ -503,7 +515,7 @@ GPUd() int GPUTRDTracker_t<TRDTRK, PROP>::GetCollisionIDs(TRDTRK& trk, int* coll
   // and the number of valid entries in the array is returned
   //--------------------------------------------------------------------
   int nColls = 0;
-  for (int iColl = 0; iColl < GetConstantMem()->ioPtrs.nTRDTriggerRecords; ++iColl) {
+  for (unsigned int iColl = 0; iColl < GetConstantMem()->ioPtrs.nTRDTriggerRecords; ++iColl) {
     if (GetConstantMem()->ioPtrs.trdTriggerTimes[iColl] > trk.getTimeMin() && GetConstantMem()->ioPtrs.trdTriggerTimes[iColl] < trk.getTimeMax()) {
       if (nColls == 20) {
         GPUError("Found too many collision candidates for track with tMin(%f) and tMax(%f)", trk.getTimeMin(), trk.getTimeMax());
@@ -579,8 +591,6 @@ GPUd() bool GPUTRDTracker_t<TRDTRK, PROP>::ConvertTrkltToSpacePoint(const GPUTRD
 }
 #endif
 
-/*
-// keep for the moment, since for AliRoot the conversion tracklets->space-points needs to be done manually
 template <class TRDTRK, class PROP>
 GPUd() bool GPUTRDTracker_t<TRDTRK, PROP>::CalculateSpacePoints(int iCollision)
 {
@@ -634,7 +644,6 @@ GPUd() bool GPUTRDTracker_t<TRDTRK, PROP>::CalculateSpacePoints(int iCollision)
   }
   return result;
 }
-*/
 
 template <class TRDTRK, class PROP>
 GPUd() void GPUTRDTracker_t<TRDTRK, PROP>::ResetImpactAngleHistograms()
