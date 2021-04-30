@@ -26,11 +26,7 @@ namespace gpu
 class GPUTRDSpacePoint
 {
  public:
-  GPUd() GPUTRDSpacePoint(float x = 0, float y = 0, float z = 0, float dy = 0) : mX(x), mDy(dy), mVolumeId(0)
-  {
-    mX[0] = y;
-    mX[1] = z;
-  }
+  GPUd() GPUTRDSpacePoint(float x = 0, float y = 0, float z = 0, float dy = 0) : mX(x), mY(y), mZ(z), mDy(dy) {}
   GPUd() float getX() const { return mX; }
   GPUd() float getY() const { return mY; }
   GPUd() float getZ() const { return mZ; }
@@ -59,7 +55,11 @@ namespace GPUCA_NAMESPACE
 namespace gpu
 {
 
-using GPUTRDSpacePoint = o2::trd::CalibratedTracklet;
+class GPUTRDSpacePoint : public o2::trd::CalibratedTracklet {};
+
+#ifdef GPUCA_NOCOMPAT
+static_assert(sizeof(GPUTRDSpacePoint) == sizeof(o2::trd::CalibratedTracklet), "Incorrect memory layout");
+#endif
 
 } // namespace gpu
 } // namespace GPUCA_NAMESPACE
