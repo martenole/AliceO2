@@ -364,10 +364,8 @@ int GPUTRDTrackerComponent::DoEvent(const AliHLTComponentEventData& evtData, con
   fRec->PrepareEvent();
   fRec->SetupGPUProcessor(fTracker, true);
 
-
   std::sort(tracklets, tracklets + nTrackletsTotal);
   fChain->mIOPtrs.trdTracklets = tracklets;
-
 
   // loop over all tracks
   for (unsigned int iTrack = 0; iTrack < tracksTPC.size(); ++iTrack) {
@@ -454,7 +452,7 @@ int GPUTRDTrackerComponent::DoEvent(const AliHLTComponentEventData& evtData, con
     for (int i = 0; i < nTrackletsTotal; ++i) {
       const GPUTRDTrackerGPU::GPUTRDSpacePointInternal& sp = spacePoints[i];
       GPUTRDTrackPoint* currOutPoint = &outTrackPoints->fPoints[i];
-      currOutPoint->fX[0] = sp.getX();    // x in sector coordinates
+      currOutPoint->fX[0] = sp.getX(); // x in sector coordinates
       currOutPoint->fX[1] = sp.getY(); // y in sector coordinates
       currOutPoint->fX[2] = sp.getZ(); // z in sector coordinates
       currOutPoint->fVolumeId = -1;

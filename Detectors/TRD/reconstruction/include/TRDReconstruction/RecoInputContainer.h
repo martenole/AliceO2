@@ -68,7 +68,7 @@ inline auto getRecoInputContainer(o2::framework::ProcessingContext& pc, o2::gpu:
     const auto& trg = retVal->mTriggerRecords[iEv];
     retVal->trdTriggerIndices.push_back(trg.getFirstTracklet());
     int64_t evTime = trg.getBCData().toLong() * o2::constants::lhc::LHCBunchSpacingNS; // event time in ns
-    retVal->trdTriggerTimes.push_back(evTime / 1000.); // event time in us
+    retVal->trdTriggerTimes.push_back(evTime / 1000.);                                 // event time in us
   }
 
   // the number of tracks loaded into the TRD tracker depends on the defined input sources
