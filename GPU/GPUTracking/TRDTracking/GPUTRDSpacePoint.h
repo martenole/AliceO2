@@ -15,25 +15,52 @@
 #ifndef GPUTRDSPACEPOINT_H
 #define GPUTRDSPACEPOINT_H
 
+#ifndef GPUCA_TPC_GEOMETRY_O2 // compatibility to Run 2 data types
+
 namespace GPUCA_NAMESPACE
 {
 namespace gpu
 {
 
-// struct to hold the information on the space points
-struct GPUTRDSpacePoint {
-  float mR;                 // x position (3.5 mm above anode wires) - radial offset due to t0 mis-calibration, measured -1 mm for run 245353
-  float mX[2];              // y and z position (sector coordinates)
-  float mDy;                // deflection over drift length
-  unsigned short mVolumeId; // basically derived from TRD chamber number
-  GPUd() GPUTRDSpacePoint(float x = 0, float y = 0, float z = 0, float dy = 0) : mR(x), mDy(dy), mVolumeId(0)
-  {
-    mX[0] = y;
-    mX[1] = z;
-  }
+// class to hold the information on the space points
+class GPUTRDSpacePoint {
+ public:
+   GPUd() GPUTRDSpacePoint(float x = 0, float y = 0, float z = 0, float dy = 0) : mX(x), mDy(dy), mVolumeId(0)
+   {
+     mX[0] = y;
+     mX[1] = z;
+   }
+   GPUd() float getX() const { return mX; }
+   GPUd() float getY() const { return mY; }
+   GPUd() float getZ() const { return mZ; }
+   GPUd() float getDy() const { return mDy; }
+   GPUd() void setX(float x) { mX = x; }
+   GPUd() void setY(float y) { mY = y; }
+   GPUd() void setZ(float z) { mZ = z; }
+   GPUd() void setDy(float dy) { mDy = dy; }
+ private:
+  float mX;  // x position (3.5 mm above anode wires) - radial offset due to t0 mis-calibration, measured -1 mm for run 245353
+  float mY;  // y position (sector coordinates)
+  float mZ;  // z position (sector coordinates)
+  float mDy; // deflection over drift length
 };
 
 } // namespace gpu
 } // namespace GPUCA_NAMESPACE
 
-#endif
+#else // compatibility with Run 3 data types
+
+#include "DataFormatsTRD/CalibratedTracklet.h"
+
+namespace GPUCA_NAMESPACE
+{
+namespace gpu {
+
+using GPUTRDSpacePoint =  o2::trd::CalibratedTracklet;
+
+} // namespace gpu
+} // namespace GPUCA_NAMESPACE
+
+#endif // GPUCA_TPC_GEOMETRY_O2
+
+#endif // GPUTRDSPACEPOINT_H

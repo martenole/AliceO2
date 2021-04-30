@@ -56,6 +56,7 @@ class MatLayerCylSet;
 namespace trd
 {
 class GeometryFlat;
+class CalibratedTracklet;
 } // namespace trd
 namespace dataformats
 {
@@ -101,7 +102,6 @@ class GPUTPCGMMergedTrack;
 struct GPUTPCGMMergedTrackHit;
 struct GPUTPCGMMergedTrackHitXYZ;
 class GPUTRDTrackletWord;
-struct GPUTRDSpacePoint;
 struct GPUTPCMCInfo;
 struct GPUTPCClusterData;
 struct GPUTRDTrackletLabels;
@@ -248,10 +248,8 @@ struct GPUTrackingInOutPointers {
   const o2::dataformats::TrackTPCITS* tracksTPCITSO2 = nullptr;
   unsigned int nTracksTPCITSO2 = 0;
   const GPUTRDTrackletWord* trdTracklets = nullptr;
-  const GPUTRDSpacePoint* trdSpacePoint = nullptr;
+  const o2::trd::CalibratedTracklet* trdSpacePoints = nullptr;
   unsigned int nTRDTracklets = 0;
-  const GPUTRDTrackletLabels* trdTrackletsMC = nullptr;
-  unsigned int nTRDTrackletsMC = 0;
   const GPUTRDTrackGPU* trdTracks = nullptr;
   unsigned int nTRDTracks = 0;
   const float* trdTriggerTimes = nullptr;

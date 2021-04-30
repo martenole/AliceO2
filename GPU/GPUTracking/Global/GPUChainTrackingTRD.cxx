@@ -38,10 +38,6 @@ int GPUChainTracking::RunTRDTracking()
   mRec->PushNonPersistentMemory(qStr2Tag("TRDTRACK"));
   SetupGPUProcessor(&Tracker, true);
 
-  if (mIOPtrs.trdTracklets == 0) {
-    return 0;
-  }
-  // TODO what about trdTrackletsMC? Are they needed at all?
 
   for (unsigned int i = 0; i < mIOPtrs.nMergedTracks; i++) {
     const GPUTPCGMMergedTrack& trk = mIOPtrs.mergedTracks[i];

@@ -36,6 +36,7 @@ struct RecoInputContainer {
   gsl::span<const o2::dataformats::TrackTPCITS> mTracksTPCITS;
   gsl::span<const o2::tpc::TrackTPC> mTracksTPC;
   gsl::span<const o2::trd::Tracklet64> mTracklets;
+  gsl::span<const o2::trd::CalibratedTracklet> mSpacePoints;
   gsl::span<const o2::trd::TriggerRecord> mTriggerRecords;
 };
 

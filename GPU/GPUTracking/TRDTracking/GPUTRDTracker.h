@@ -128,7 +128,6 @@ class GPUTRDTracker_t : public GPUProcessor
   GPUd() void InsertHypothesis(Hypothesis hypo, int& nCurrHypothesis, int idxOffset);
 
   // input from TRD trigger record
-  GPUd() void SetNMaxCollisions(int nColl) { mNMaxCollisions = nColl; } // can this be fixed to a sufficiently large value?
   GPUd() void SetInternalSpacePoint(int idx, float x, float y, float z, float dy) { mSpacePoints[idx] = GPUTRDSpacePoint(x, y, z, dy); }
 
   // settings
