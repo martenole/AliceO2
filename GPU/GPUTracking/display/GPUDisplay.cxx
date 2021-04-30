@@ -1399,7 +1399,7 @@ int GPUDisplay::DrawGLScene_internal(bool mixAnimation, float mAnimateTime)
 
     GPUCA_OPENMP(parallel for num_threads(getNumThreads()) reduction(max : mMaxClusterZ))
     for (int i = 0; i < mCurrentSpacePointsTRD; i++) {
-      const auto& sp = trdTracker().SpacePoints()[i];
+      const auto& sp = mIOPtrs->trdSpacePoints[i];
       int iSec = trdGeometry().GetSector(mIOPtrs->trdTracklets[i].GetDetector());
       float4* ptr = &mGlobalPosTRD[i];
       mParam->Slice2Global(iSec, sp.getX() + mXadd, sp.getY(), sp.getZ(), &ptr->x, &ptr->y, &ptr->z);
