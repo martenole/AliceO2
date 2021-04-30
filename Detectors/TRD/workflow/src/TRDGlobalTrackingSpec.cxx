@@ -122,7 +122,6 @@ void TRDGlobalTracking::run(ProcessingContext& pc)
     LOGF(FATAL, "Number of calibrated tracklets (%i) differs from the number of uncalibrated tracklets (%i)", nSpacePoints, nTracklets);
   }
 
-
   std::vector<float> trdTriggerTimes;
   std::vector<int> trdTriggerIndices;
 
@@ -188,8 +187,6 @@ void TRDGlobalTracking::run(ProcessingContext& pc)
   }
   LOGF(INFO, "%i tracks are loaded into the TRD tracker. Out of those %i ITS-TPC tracks and %i TPC tracks", nTracksLoadedITSTPC + nTracksLoadedTPC, nTracksLoadedITSTPC, nTracksLoadedTPC);
 
-
-
   //mTracker->DumpTracks();
   mTracker->DoTracking(mChainTracking);
   mTracker->DumpTracks();
@@ -232,7 +229,6 @@ DataProcessorSpec getTRDGlobalTrackingSpec(bool useMC, GTrackID::mask_t src)
 
   dataRequestTRD.requestTracks(src, false);
   auto& inputs = dataRequestTRD.inputs;
-
 
   inputs.emplace_back("trdctracklets", o2::header::gDataOriginTRD, "CTRACKLETS", 0, Lifetime::Timeframe);
   inputs.emplace_back("trdtracklets", o2::header::gDataOriginTRD, "TRACKLETS", 0, Lifetime::Timeframe);

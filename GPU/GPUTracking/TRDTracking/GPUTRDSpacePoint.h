@@ -23,21 +23,23 @@ namespace gpu
 {
 
 // class to hold the information on the space points
-class GPUTRDSpacePoint {
+class GPUTRDSpacePoint
+{
  public:
-   GPUd() GPUTRDSpacePoint(float x = 0, float y = 0, float z = 0, float dy = 0) : mX(x), mDy(dy), mVolumeId(0)
-   {
-     mX[0] = y;
-     mX[1] = z;
-   }
-   GPUd() float getX() const { return mX; }
-   GPUd() float getY() const { return mY; }
-   GPUd() float getZ() const { return mZ; }
-   GPUd() float getDy() const { return mDy; }
-   GPUd() void setX(float x) { mX = x; }
-   GPUd() void setY(float y) { mY = y; }
-   GPUd() void setZ(float z) { mZ = z; }
-   GPUd() void setDy(float dy) { mDy = dy; }
+  GPUd() GPUTRDSpacePoint(float x = 0, float y = 0, float z = 0, float dy = 0) : mX(x), mDy(dy), mVolumeId(0)
+  {
+    mX[0] = y;
+    mX[1] = z;
+  }
+  GPUd() float getX() const { return mX; }
+  GPUd() float getY() const { return mY; }
+  GPUd() float getZ() const { return mZ; }
+  GPUd() float getDy() const { return mDy; }
+  GPUd() void setX(float x) { mX = x; }
+  GPUd() void setY(float y) { mY = y; }
+  GPUd() void setZ(float z) { mZ = z; }
+  GPUd() void setDy(float dy) { mDy = dy; }
+
  private:
   float mX;  // x position (3.5 mm above anode wires) - radial offset due to t0 mis-calibration, measured -1 mm for run 245353
   float mY;  // y position (sector coordinates)
@@ -54,9 +56,10 @@ class GPUTRDSpacePoint {
 
 namespace GPUCA_NAMESPACE
 {
-namespace gpu {
+namespace gpu
+{
 
-using GPUTRDSpacePoint =  o2::trd::CalibratedTracklet;
+using GPUTRDSpacePoint = o2::trd::CalibratedTracklet;
 
 } // namespace gpu
 } // namespace GPUCA_NAMESPACE
