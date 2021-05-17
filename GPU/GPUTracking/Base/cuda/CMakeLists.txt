@@ -15,8 +15,8 @@ if(DEFINED CUDA_COMPUTETARGET)
 endif()
 message(STATUS "Building GPUTracking with CUDA support ${TMP_TARGET}")
 
-set(SRCS GPUReconstructionCUDA.cu)
-set(HDRS GPUReconstructionCUDA.h GPUReconstructionCUDAInternals.h GPUReconstructionCUDADef.h GPUReconstructionCUDAIncludes.h)
+set(SRCS GPUReconstructionCUDA.cu GPUReconstructionCUDAGenRTC.cu)
+set(HDRS GPUReconstructionCUDA.h GPUReconstructionCUDAInternals.h GPUReconstructionCUDADef.h GPUReconstructionCUDAIncludes.h CUDAThrustHelpers.h)
 
 # -------------------------------- Prepare RTC -------------------------------------------------------
 if(NOT ALIGPU_BUILD_TYPE STREQUAL "ALIROOT")
@@ -116,7 +116,7 @@ if(ALIGPU_BUILD_TYPE STREQUAL "O2")
       ${CMAKE_SOURCE_DIR}/Detectors/Base/src
       ${CMAKE_SOURCE_DIR}/Detectors/TRD/base/src
       ${CMAKE_SOURCE_DIR}/DataFormats/Reconstruction/src
-    PUBLIC_LINK_LIBRARIES O2::GPUTracking O2::ITStrackingCUDA
+    PUBLIC_LINK_LIBRARIES O2::GPUTracking O2::ITStrackingCUDA O2::FrameworkFoundation3rdparty
     TARGETVARNAME targetName)
 
   target_compile_definitions(

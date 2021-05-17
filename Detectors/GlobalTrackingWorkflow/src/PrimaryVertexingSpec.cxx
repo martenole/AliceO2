@@ -73,6 +73,7 @@ void PrimaryVertexingSpec::init(InitContext& ic)
   } else {
     mITSROFrameLengthMUS = alpParams.roFrameLengthInBC * o2::constants::lhc::LHCBunchSpacingNS * 1e-3; // ITS ROFrame duration in \mus
   }
+  mVertexer.setITSROFrameLength(mITSROFrameLengthMUS);
 
   // this is a hack to provide Mat.LUT from the local file, in general will be provided by the framework from CCDB
   std::string matLUTPath = ic.options().get<std::string>("material-lut-path");
@@ -89,7 +90,7 @@ void PrimaryVertexingSpec::init(InitContext& ic)
   mVertexer.setValidateWithIR(mValidateWithIR);
 
   // set bunch filling. Eventually, this should come from CCDB
-  const auto* digctx = o2::steer::DigitizationContext::loadFromFile("collisioncontext.root");
+  const auto* digctx = o2::steer::DigitizationContext::loadFromFile();
   const auto& bcfill = digctx->getBunchFilling();
   mVertexer.setBunchFilling(bcfill);
   mVertexer.init();

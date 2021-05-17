@@ -42,7 +42,7 @@ class GPUTRDTracker_t
 #endif
 
 // Dummies for stuff not suppored in legacy code, or for what requires O2 headers while not available
-#if defined(GPUCA_NOCOMPAT_ALLCINT) && (!defined(GPUCA_GPULIBRARY) || !defined(GPUCA_ALIROOT_LIB)) && defined(HAVE_O2HEADERS)
+#if defined(GPUCA_NOCOMPAT_ALLCINT) && (!defined(GPUCA_GPULIBRARY) || !defined(GPUCA_ALIROOT_LIB)) && defined(GPUCA_HAVE_O2HEADERS)
 #include "GPUTPCConvert.h"
 #include "GPUTPCCompression.h"
 #include "GPUITSFitter.h"
@@ -96,7 +96,7 @@ union GPUConstantMemCopyable {
 };
 #endif
 
-#if defined(GPUCA_GPUCODE) && defined(GPUCA_NOCOMPAT)
+#if defined(GPUCA_GPUCODE) && defined(GPUCA_NOCOMPAT) && !defined(GPUCA_GPUCODE_HOSTONLY)
 static constexpr size_t gGPUConstantMemBufferSize = (sizeof(GPUConstantMem) + sizeof(uint4) - 1);
 #if defined(GPUCA_HAS_GLOBAL_SYMBOL_CONSTANT_MEM)
 } // namespace gpu
@@ -106,16 +106,16 @@ namespace GPUCA_NAMESPACE
 {
 namespace gpu
 {
-#endif
+#endif // GPUCA_HAS_GLOBAL_SYMBOL_CONSTANT_MEM
 #ifdef GPUCA_CONSTANT_AS_ARGUMENT
 static GPUConstantMemCopyable gGPUConstantMemBufferHost;
-#endif
+#endif // GPUCA_CONSTANT_AS_ARGUMENT
 #endif
 
 // Must be placed here, to avoid circular header dependency
 GPUdi() GPUconstantref() const MEM_CONSTANT(GPUParam) & GPUProcessor::Param() const
 {
-#if defined(GPUCA_GPUCODE_DEVICE) && defined(GPUCA_HAS_GLOBAL_SYMBOL_CONSTANT_MEM)
+#if defined(GPUCA_GPUCODE_DEVICE) && defined(GPUCA_HAS_GLOBAL_SYMBOL_CONSTANT_MEM) && !defined(GPUCA_GPUCODE_HOSTONLY)
   return GPUCA_CONSMEM.param;
 #else
   return mConstantMem->param;
@@ -124,7 +124,7 @@ GPUdi() GPUconstantref() const MEM_CONSTANT(GPUParam) & GPUProcessor::Param() co
 
 GPUdi() GPUconstantref() const MEM_CONSTANT(GPUConstantMem) * GPUProcessor::GetConstantMem() const
 {
-#if defined(GPUCA_GPUCODE_DEVICE) && defined(GPUCA_HAS_GLOBAL_SYMBOL_CONSTANT_MEM)
+#if defined(GPUCA_GPUCODE_DEVICE) && defined(GPUCA_HAS_GLOBAL_SYMBOL_CONSTANT_MEM) && !defined(GPUCA_GPUCODE_HOSTONLY)
   return &GPUCA_CONSMEM;
 #else
   return mConstantMem;
