@@ -15,11 +15,14 @@ o2_add_library(SpacePoints
                        src/TrackInterpolation.cxx
                PUBLIC_LINK_LIBRARIES O2::DataFormatsTPC
                                      O2::TPCBase
+                                     O2::TRDBase
                                      O2::TPCReconstruction
                                      O2::TPCFastTransformation
                                      O2::DataFormatsITS
                                      O2::DataFormatsITSMFT
-                                     O2::DataFormatsTOF)
+                                     O2::DataFormatsTRD
+                                     O2::DataFormatsTOF
+                                     O2::DataFormatsGlobalTracking)
 
 o2_target_root_dictionary(SpacePoints
                           HEADERS include/SpacePoints/SpacePointsCalibParam.h
