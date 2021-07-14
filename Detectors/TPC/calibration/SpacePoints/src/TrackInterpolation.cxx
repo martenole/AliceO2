@@ -75,6 +75,7 @@ void TrackInterpolation::process(const o2::globaltracking::RecoContainer& inp, c
   mGIDs = &gids;
   mGIDtables = &gidTables;
   mSeeds = &seeds;
+  mTrackTimes = &trkTimes;
   mTPCTracksClusIdx = mRecoCont->getTPCTracksClusterRefs();
   mTPCClusterIdxStruct = &mRecoCont->getTPCClusters();
 
@@ -92,30 +93,32 @@ void TrackInterpolation::process(const o2::globaltracking::RecoContainer& inp, c
 
   LOG(INFO) << "Could process " << mTrackData.size() << " tracks successfully";
 
-  /*
+  // FIXME: below debug output should be removed, but understand time differences for ITS-TPC-TOF matches first
+  for (int iSeed = 0; iSeed < nSeeds; ++iSeed) {
+    gids[iSeed].print();
+    const auto& trkITSTPC = mRecoCont->getTPCITSTrack((gidTables[iSeed])[GTrackID::ITSTPC]);
+    LOGF(INFO, "Track time: %f. And ITSTPC track: %f, mTPCTimeBinMUS: %f", trkTimes[iSeed], trkITSTPC.getTimeMUS().getTimeStamp(), mTPCTimeBinMUS);
+  }
   // check which seeds could be processed successfully
   for (const auto& gid : mGIDsSuccess) {
     gid.print();
   }
-  */
 }
 
 void TrackInterpolation::interpolateTrack(int iSeed)
 {
   TrackData trackData;
   auto propagator = o2::base::Propagator::Instance();
-  const auto gidTable = (*mGIDtables)[iSeed];
+  const auto& gidTable = (*mGIDtables)[iSeed];
   const auto& trkTPC = mRecoCont->getTPCTrack(gidTable[GTrackID::TPC]);
-  const auto trkITS = mRecoCont->getITSTrack(gidTable[GTrackID::ITS]);
-  const auto& trkITSTPC = mRecoCont->getTPCITSTrack(gidTable[GTrackID::ITSTPC]);
-  LOG(DEBUG) << "Track seed X = " << (*mSeeds)[iSeed].getX();
+  const auto& trkITS = mRecoCont->getITSTrack(gidTable[GTrackID::ITS]);
   auto& trkWork = (*mSeeds)[iSeed];
   // reset the cache array (sufficient to set cluster available to zero)
   for (auto& elem : mCache) {
     elem.clAvailable = 0;
   }
   trackData.clIdx.setFirstEntry(mClRes.size()); // reference the first cluster residual belonging to this track
-  float clusterTimeBinOffset = trkITSTPC.getTimeMUS().getTimeStamp() / mTPCTimeBinMUS;
+  float clusterTimeBinOffset = (*mTrackTimes)[iSeed] / mTPCTimeBinMUS;
 
   // store the TPC cluster positions in the cache
   for (int iCl = trkTPC.getNClusterReferences(); iCl--;) {
@@ -296,11 +299,10 @@ void TrackInterpolation::extrapolateTrack(int iSeed)
   const auto& gidTable = (*mGIDtables)[iSeed];
   TrackData trackData;
   trackData.clIdx.setFirstEntry(mClRes.size());
-  const auto& trkITSTPC = mRecoCont->getTPCITSTrack(gidTable[GTrackID::ITSTPC]);
   const auto& trkITS = mRecoCont->getITSTrack(gidTable[GTrackID::ITS]);
   const auto& trkTPC = mRecoCont->getTPCTrack(gidTable[GTrackID::TPC]);
   auto& trkWork = (*mSeeds)[iSeed];
-  float clusterTimeBinOffset = trkITSTPC.getTimeMUS().getTimeStamp() / mTPCTimeBinMUS;
+  float clusterTimeBinOffset = (*mTrackTimes)[iSeed] / mTPCTimeBinMUS;
   auto propagator = o2::base::Propagator::Instance();
   unsigned short rowPrev = 0;
   unsigned short nMeasurements = 0;

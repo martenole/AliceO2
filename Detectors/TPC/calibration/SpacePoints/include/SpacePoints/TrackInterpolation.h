@@ -164,6 +164,7 @@ class TrackInterpolation
   const o2::globaltracking::RecoContainer* mRecoCont = nullptr;                            ///< input reco container
   const std::vector<o2::dataformats::GlobalTrackID>* mGIDs = nullptr;                      ///< GIDs of input tracks
   const std::vector<o2::globaltracking::RecoContainer::GlobalIDSet>* mGIDtables = nullptr; ///< GIDs of contributors from single detectors for each seed
+  const std::vector<float>* mTrackTimes = nullptr;                                         ///< time estimates for all input tracks in micro seconds
   std::vector<o2::track::TrackParCov>* mSeeds = nullptr;                                   ///< seeding track parameters (ITS tracks)
   gsl::span<const TPCClRefElem> mTPCTracksClusIdx;                                         ///< input TPC cluster indices from span
   const ClusterNativeAccess* mTPCClusterIdxStruct = nullptr; ///< struct holding the TPC cluster indices
