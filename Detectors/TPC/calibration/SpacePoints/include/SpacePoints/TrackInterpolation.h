@@ -174,6 +174,7 @@ class TrackInterpolation
 
   // cache
   std::array<CacheStruct, constants::MAXGLOBALPADROW> mCache{{}}; ///< caching positions, covariances and angles for track extrapolations and interpolation
+  std::vector<o2::dataformats::GlobalTrackID> mGIDsSuccess;       ///< keep track of the GIDs which could be processed successfully
 
   // helpers
   std::unique_ptr<TPCFastTransform> mFastTransform{}; ///< TPC cluster transformation

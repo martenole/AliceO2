@@ -665,8 +665,7 @@ RecoContainer::GlobalIDSet RecoContainer::getSingleDetectorRefs(GTrackID gidx) c
     table[GTrackID::ITSTPC] = parent0.getRefGlobalTrackId();
     table[GTrackID::ITS] = parent1.getRefITS();
     table[GTrackID::TPC] = parent1.getRefTPC();
-    // to what reference should table[GTrackID::TRD] be set?
-    table[GTrackID::TRD] = {42, GTrackID::TRD}; // set it to "something" so that the table logic can be used. Basically just to flag that TRD info is available
+    table[GTrackID::TRD] = gidx; // there is no standalone TRD track, so use the index for the ITSTPCTRD track array
   }
   if (src == GTrackID::ITSTPCTOF) {
     const auto& parent0 = getTOFMatch(gidx); //ITS/TPC : TOF

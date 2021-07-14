@@ -91,6 +91,13 @@ void TrackInterpolation::process(const o2::globaltracking::RecoContainer& inp, c
   }
 
   LOG(INFO) << "Could process " << mTrackData.size() << " tracks successfully";
+
+  /*
+  // check which seeds could be processed successfully
+  for (const auto& gid : mGIDsSuccess) {
+    gid.print();
+  }
+  */
 }
 
 void TrackInterpolation::interpolateTrack(int iSeed)
@@ -174,7 +181,7 @@ void TrackInterpolation::interpolateTrack(int iSeed)
   }
   if (gidTable[GTrackID::TRD].isIndexSet()) {
     LOG(DEBUG) << "TRD available";
-    const auto& trkTRD = mRecoCont->getITSTPCTRDTrack<o2::trd::TrackTRD>((*mGIDs)[iSeed]);
+    const auto& trkTRD = mRecoCont->getITSTPCTRDTrack<o2::trd::TrackTRD>(gidTable[GTrackID::TRD]);
     for (int iLayer = o2::trd::constants::NLAYER - 1; iLayer >= 0; --iLayer) {
       int trkltIdx = trkTRD.getTrackletIndex(iLayer);
       if (trkltIdx < 0) {
@@ -280,6 +287,7 @@ void TrackInterpolation::interpolateTrack(int iSeed)
   trackData.clIdx.setEntries(nMeasurements);
 
   mTrackData.push_back(std::move(trackData));
+  mGIDsSuccess.push_back((*mGIDs)[iSeed]);
 }
 
 void TrackInterpolation::extrapolateTrack(int iSeed)
@@ -333,10 +341,12 @@ void TrackInterpolation::extrapolateTrack(int iSeed)
   trackData.clIdx.setEntries(nMeasurements);
 
   mTrackData.push_back(std::move(trackData));
+  mGIDsSuccess.push_back((*mGIDs)[iSeed]);
 }
 
 void TrackInterpolation::reset()
 {
   mTrackData.clear();
   mClRes.clear();
+  mGIDsSuccess.clear();
 }
